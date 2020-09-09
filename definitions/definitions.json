@@ -1,0 +1,125 @@
+{
+	"college": "ANU College of Engineering and Computer Science",
+	"accreditation": "Engineers Australia",
+	"programs": [ "AENGI", "AENRD", "ASENG" ]
+	,
+	"majors": [
+		{
+			"name": "Biomedical Systems",
+			"code": "BMSY-MAJ",
+			"programs": [ "AENGI", "AENRD" ],
+			"courses": [
+				"BIOL1004",
+				"ENGN2217",
+				"ENGN2222",
+				"ENGN3820",
+				"ENGN4810",
+				"ENGN4811",
+				"ENGN4820",
+				"ENGN4821"
+			]
+		}
+		,
+		{
+			"name": "Electronic and Communication Systems",
+			"code": "ELCO-MAJ",
+			"programs": [ "AENGI", "AENRD" ],
+			"courses": [
+				"ENGN2218",
+				"ENGN2228",
+				"ENGN3226",
+				"ENGN3539",
+				"ENGN4213",
+				"ENGN4536",
+				"ENGN4537",
+				"ENGN4625"
+			]
+		}
+		,
+		{
+			"name": "Mechanical and Material Systems",
+			"code": "MMSY-MAJ",
+			"programs": [ "AENGI", "AENRD" ],
+			"courses": [
+				"ENGN2217",
+				"ENGN2222",
+				"ENGN3331",
+				"ENGN3601",
+				"ENGN4027",
+				"ENGN4212",
+				"ENGN4511",
+				"ENGN4615"
+			]
+		}
+		,
+		{
+			"name": "Mechatronic Systems",
+			"code": "MTSY-MAJ",
+			"programs": [ "AENGI", "AENRD" ],
+			"courses": [
+				"ENGN2218",
+				"ENGN2228",
+				"ENGN3213",
+				"ENGN3223",
+				"ENGN3331",
+				"ENGN4528",
+				"ENGN4627",
+				"ENGN4628"
+			]
+		}
+		,
+		{
+			"name": "Renewable Energy Systems",
+			"code": "RENE-MAJ",
+			"programs": [ "AENGI", "AENRD" ],
+			"courses": [
+				"ENGN2218",
+				"ENGN2222",
+				"ENGN3224",
+				"ENGN4516",
+				"ENGN4524",
+				"ENGN4525",
+				"ENGN4547",
+				"ENGN4548",
+				"ENGN4625"
+			]
+		}
+		,
+		{
+			"name": "Advanced Intelligent Systems",
+			"code": "ADIS-MAJ",
+			"programs": [ "ASENG" ],
+			"courses": [
+				"COMP2620",
+				"COMP3620",
+				"COMP3670",
+				"COMP4620",
+				"COMP4650",
+				"COMP4660",
+				"COMP4670",
+				"COMP4680",
+				"COMP4691",
+				"ENGN4528"
+			]
+		}
+		,
+		{
+			"name": "Cyber Security",
+			"code": "CSEC-MAJ",
+			"programs": [ "ASENG" ],
+			"courses": [
+				"COMP2310",
+				"COMP2610",
+				"COMP2700",
+				"COMP3300",
+				"COMP3310",
+				"COMP3703",
+				"COMP3704",
+				"COMP4330",
+				"CRIM2010",
+				"ENGN3213",
+				"MATH3301"
+			]
+		}
+	]
+}
