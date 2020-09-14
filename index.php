@@ -7,10 +7,10 @@ error_reporting(E_ALL);
 
 require_once("./jcumap-output-processor.php");
 
-$staffDisplay = false;
-if ( isset($_GET['staffDisplay']) )
+$staffDisplayScript = '';
+if ( isset($_GET['staffDisplay']) || ( isset($displayInformationForStaff) && $displayInformationForStaff) )
 {
-	$staffDisplay = true;
+	$staffDisplayScript = 'staff.php';
 }
 
 	
@@ -98,7 +98,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 	print("</head>\n");
 	
 	print("<body class=\"container\">\n");
-	print("<h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"./\">CECS Professional Skills Mapping</a></h1>\n");
+	print("<h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"./" . $staffDisplayScript . "\">CECS Professional Skills Mapping</a></h1>\n");
 	
 	if ( $code && $type && $name )
 	{
@@ -143,22 +143,193 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				}
 				if ( isset($course->assessments) && $course->assessments )
 				{
-					print("		<tr><th>assessment: </th><td class=\"small\"><ol>");
-					foreach ($course->assessments as $assessment)
+					print("		<tr><th>assessment: </th><td class=\"small\">");
+					if ( $staffDisplayScript )
 					{
-						print("<li>" . $assessment->name);
-						if ( $assessment->weight > 0 )
+						$assessmentTypes = listAssessmentTypes();
+						print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment breakdown:</caption>");
+						print("<colgroup><col span=\"2\"><col span=\"1\"><col span=\"1\"><col span=\"" . count($course->learningOutcomes) . "\"></colgroup>");
+						print("<thead><tr><th colspan=\"2\" rowspan=\"2\">assessment item(s)</th><th rowspan=\"2\">category</th><th rowspan=\"2\" class=\"text-center\">weight</th><th colspan=\"" . count($course->learningOutcomes) . "\" class=\"text-center\">percentage breakdown (per 100% item)</th></tr><tr>");
+						foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
 						{
-							print(" (" . $assessment->weight . "%)");
+							print("<th class=\"text-center\" data-toggle=\"tooltip\" data-placement=\"top\" data-html=\"true\" title=\"" . ( $learningOutcomeN + 1 ). ". " . $learningOutcome . "\">" . ( $learningOutcomeN + 1 ). "</th>");
 						}
-						print("</li>");
+						print("</tr></thead><tbody>");
+						foreach ($course->assessments as $assessmentN => $assessment)
+						{
+							print("<tr><td>" . ( $assessmentN + 1 ) . ". </td><td>" . $assessment->name . "</td><td>" . $assessmentTypes[$assessment->typeCode]->type . "</td><td class=\"text-center font-weight-bold\">");
+							if ( $assessment->weight > 0 )
+							{
+								print($assessment->weight . "%");
+							}
+							print("</td>");
+							foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
+							{
+								print("<td class=\"text-center\">");
+								if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) && $course->assessmentsMapping[$assessmentN][$learningOutcomeN] > 0)
+								{
+									print($course->assessmentsMapping[$assessmentN][$learningOutcomeN] . "%");
+								}
+								print("</td>");
+							}
+							print("</tr>");
+						}
+						print("</tbody></table>");
+						if ( $course->assessmentCategorisationSummary )
+						{
+							$assessmentTotals = array_sum($course->assessmentCategorisationSummary);
+							print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment types used across whole subject:</caption>");
+							print("<thead><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to entire course</th></tr></thead><tbody>");
+							foreach ($course->assessmentCategorisationSummary as $assessmentType => $assessmentTypeCredits)
+							{
+								if ( $assessmentTypeCredits > 0.0 )
+								{
+									$assessmentTypePercentage = number_format((100 * $assessmentTypeCredits / $assessmentTotals), 0);
+									print("<tr><td class=\"align-middle\">" . $assessmentTypes[$assessmentType]->type . "</td><td class=\"text-center align-middle\">" . $assessmentTypePercentage . "%</td><td class=\"col-6 align-middle\"><div class=\"progress\"><div class=\"progress-bar\" role=\"progressbar\" style=\"width: " . $assessmentTypePercentage . "%\" aria-valuenow=\"" . $assessmentTypePercentage . "\" aria-valuemin=\"0\" aria-valuemax=\"100\"></div></div></td></tr>");
+								}
+							}
+							print("</tbody></table>");
+						}
 					}
-					print("</ol></td></tr>\n");
+					else
+					{
+						print("<ol>");
+						foreach ($course->assessments as $assessment)
+						{
+							print("<li>" . $assessment->name);
+							if ( $assessment->weight > 0 )
+							{
+								print(" (" . $assessment->weight . "%)");
+							}
+							print("</li>");
+						}
+						print("</ol>");
+					}
+					print("</td></tr>\n");
 				}
 				print("	</tbody>\n");
 				print("</table>\n");
 				print("</div>\n");
 				
+				// table of all learning outcomes mappings (to EA competencies and to assessment items)
+				print("<h2>Mapped learning outcomes</h2>\n");
+				print("<div class=\"container\">\n");
+				print("<table class=\"table table-sm table-bordered table-hover small\">\n");
+				print("	<colgroup>\n");
+				print("		<col span=\"2\">\n");
+				foreach ($course->competencies as $competencyKey => $competency)
+				{
+					if ( $competency->level == 1 )
+					{
+						print("		<col span=\"" . $competency->sublevels . "\">\n");
+					}
+				}
+				if ( $course->assessments )
+				{
+					print("		<col span=\"" . count($course->assessments) . "\">\n");
+				}
+				print("	</colgroup>\n");
+				print("	<thead>\n");
+				print("		<tr><th colspan=\"2\" rowspan=\"2\" class=\"text-center align-middle\">learning outcome</th>");
+				foreach ($course->competencies as $competencyKey => $competency)
+				{
+					if ( $competency->level == 1 )
+					{
+						print("<th colspan=\"" . $competency->sublevels . "\" class=\"text-center\">" . $competency->label . " " . $competency->text . "</th>");
+					}
+				}
+				if ( $course->assessments )
+				{
+					print("<th colspan=\"" . count($course->assessments) . "\" class=\"text-center\">assessment tasks</th>");
+				}
+				print("</tr>\n");
+				print("		<tr>");
+				foreach ($course->competencies as $competencyKey => $competency)
+				{
+					if ( $competency->level == 2 )
+					{
+						print("<th class=\"text-center align-middle\" data-toggle=\"tooltip\" data-placement=\"top\" data-html=\"true\" title=\"" . $competency->text . "\">" . $competency->label . "</th>");
+					}
+				}
+				if ( $course->assessments )
+				{
+					foreach ($course->assessments as $assessmentN => $assessment)
+					{
+						print("<th class=\"text-center align-middle\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" . $assessment->name);
+						if ( $staffDisplayScript )
+						{
+							print(" (" . $assessment->weight . "%)");
+						}
+						print("\">" . ( $assessmentN + 1 ) . "</th>");
+					}
+				}
+				print("</tr>\n");
+				print("	</thead>\n");
+				print("	<tbody>\n");
+				foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
+				{
+					print("		<tr><td>" . ( $learningOutcomeN + 1 ) . ". </td><td class=\"small\">" . $learningOutcome . "</td>");
+					foreach ($course->competencies as $competencyKey => $competency)
+					{
+						if ( $competency->level == 2 )
+						{
+							print("<td class=\"text-center text-success align-middle\">");
+							if ( isset($course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]) && $course->learningOutcomesMapping[$learningOutcomeN][$competencyKey] > 0)
+							{
+								if ( $staffDisplayScript )
+								{
+									for ($i=0; $i<$course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]; $i++)
+									{
+										print("✓");
+									}
+								}
+								else
+								{
+									print("✓");
+								}
+							}
+							print("</td>");
+						}
+					}
+					if ( $course->assessments )
+					{
+						foreach ($course->assessments as $assessmentN => $assessment)
+						{
+							print("<td class=\"text-center text-success align-middle\"");
+							if ( $staffDisplayScript )
+							{
+								print(" data-toggle=\"tooltip\" data-placement=\"top\" data-html=\"true\" title=\"");
+								if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) )
+								{
+									print($course->assessmentsMapping[$assessmentN][$learningOutcomeN]);
+								}
+								else
+								{
+									print("0");
+								}
+								print("% of assessment #" . ( $assessmentN + 1 ) . "\"");
+							}
+							print(">");
+							if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) && $course->assessmentsMapping[$assessmentN][$learningOutcomeN] > 0)
+							{
+								print("✓");
+							}
+							print("</td>");
+						}
+					}
+					print("</tr>\n");
+				}
+				print("	</tbody>\n");
+				print("</table>\n");
+				print("</div>\n");
+				
+				// display chart of development level learning against each of the competencies
+				if ( $staffDisplayScript )
+				{
+					
+				}
+				
+				// list all EA competencies, and indicate which are addressed in this course
 				print("<h2>" . $course->competencyName . " — summary</h2>\n");
 				print("<div class=\"container\">\n");
 				print("<table class=\"table table-sm table-hover\">\n");
@@ -171,8 +342,8 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 							print("		<tr class=\"table-secondary\">");
 							if ( $competency->competencyLevel > 0 )
 							{
-								print("<th class=\"text-success\">");
-								if ( $staffDisplay )
+								print("<th class=\"text-center text-success align-middle\">");
+								if ( $staffDisplayScript )
 								{
 									for ($i=0; $i<$competency->competencyLevel; $i++)
 									{
@@ -196,8 +367,8 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 							print("		<tr class=\"small\">");
 							if ( $competency->competencyLevel > 0 )
 							{
-								print("<td class=\"text-success\">");
-								if ( $staffDisplay )
+								print("<td class=\"text-center text-success align-middle\">");
+								if ( $staffDisplayScript )
 								{
 									for ($i=0; $i<$competency->competencyLevel; $i++)
 									{
@@ -218,13 +389,13 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 							print("</tr>\n");
 							break;
 						case 3:
-							if ($staffDisplay)
+							if ($staffDisplayScript)
 							{
 								print("		<tr class=\"small\">");
 								if ( $competency->competencyLevel > 0 )
 								{
-									print("<td class=\"text-success\">");
-									if ( $staffDisplay )
+									print("<td class=\"text-center text-success align-middle\">");
+									if ( $staffDisplayScript )
 									{
 										for ($i=0; $i<$competency->competencyLevel; $i++)
 										{
@@ -246,86 +417,6 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 							}
 							break;
 					}
-				}
-				print("	</tbody>\n");
-				print("</table>\n");
-				print("</div>\n");
-				
-				print("<h2>Mapped learning outcomes</h2>\n");
-				print("<div class=\"container\">\n");
-				print("<table class=\"table table-sm table-bordered table-hover small\">\n");
-				
-				print("	<thead>\n");
-				print("		<tr><th colspan=\"2\" rowspan=\"2\">learning outcome</th>");
-				foreach ($course->competencies as $competencyKey => $competency)
-				{
-					if ( $competency->level == 1 )
-					{
-						print("<th colspan=\"" . $competency->sublevels . "\" class=\"text-center\">" . $competency->label . " " . $competency->text . "</th>");
-					}
-				}
-				if ( $course->assessments )
-				{
-					print("<th colspan=\"" . count($course->assessments) . "\" class=\"text-center\">assessment tasks</th>");
-				}
-				print("</tr>\n");
-				print("		<tr>");
-				foreach ($course->competencies as $competencyKey => $competency)
-				{
-					if ( $competency->level == 2 )
-					{
-						print("<th class=\"text-center\" data-toggle=\"tooltip\" data-placement=\"top\" data-html=\"true\" title=\"" . $competency->text . "\">" . $competency->label . "</th>");
-					}
-				}
-				if ( $course->assessments )
-				{
-					foreach ($course->assessments as $assessmentN => $assessment)
-					{
-						print("<th class=\"text-center\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" . $assessment->name . "\">" . ( $assessmentN + 1 ) . "</th>");
-					}
-				}
-				print("</tr>\n");
-				print("	</thead>\n");
-				
-				print("	<tbody>\n");
-				foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
-				{
-					print("		<tr><td>" . ( $learningOutcomeN + 1 ) . ". </td><td class=\"small\">" . $learningOutcome . "</td>");
-					foreach ($course->competencies as $competencyKey => $competency)
-					{
-						if ( $competency->level == 2 )
-						{
-							print("<td class=\"text-center text-success\">");
-							if ( isset($course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]) && $course->learningOutcomesMapping[$learningOutcomeN][$competencyKey] > 0)
-							{
-								if ( $staffDisplay )
-								{
-									for ($i=0; $i<$course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]; $i++)
-									{
-										print("✓");
-									}
-								}
-								else
-								{
-									print("✓");
-								}
-							}
-							print("</td>");
-						}
-					}
-					if ( $course->assessments )
-					{
-						foreach ($course->assessments as $assessmentN => $assessment)
-						{
-							print("<td class=\"text-center text-success\">");
-							if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) && $course->assessmentsMapping[$assessmentN][$learningOutcomeN] > 0)
-							{
-								print("✓");
-							}
-							print("</td>");
-						}
-					}
-					print("</tr>\n");
 				}
 				print("	</tbody>\n");
 				print("</table>\n");
@@ -366,7 +457,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						$program = getDefinition($program);
 						if ( $program )
 						{
-							print("				<li class=\"position-relative\"><a class=\"stretched-link\" href=\"./?code=" . $program->code . "\">" . htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "</a></li>\n");
+							print("				<li class=\"position-relative\"><a class=\"stretched-link\" href=\"./" . $staffDisplayScript . "?code=" . $program->code . "\">" . htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "</a></li>\n");
 						}
 					}
 					print("			</ul></td></tr>\n");
@@ -377,7 +468,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					foreach ($major->courses as $course)
 					{
 						$course = getCourse($course, 'basic');
-						print("				<li class=\"position-relative\"><a class=\"stretched-link\" href=\"./?code=" . $course->code . "\">" . $course->code);
+						print("				<li class=\"position-relative\"><a class=\"stretched-link\" href=\"./" . $staffDisplayScript . "?code=" . $course->code . "\">" . $course->code);
 						if ( $course->name )
 						{
 							print(" — <span class=\"font-italic\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</span>");
@@ -434,7 +525,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						$major = getDefinition($major);
 						if ( $major )
 						{
-							print("				<li class=\"position-relative\"><a class=\"stretched-link\" href=\"./?code=" . $major->code . "\">" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . " major</a></li>\n");
+							print("				<li class=\"position-relative\"><a class=\"stretched-link\" href=\"./" . $staffDisplayScript . "?code=" . $major->code . "\">" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . " major</a></li>\n");
 						}
 					}
 					print("			</ul></td></tr>\n");
@@ -445,7 +536,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					foreach ($program->courses as $course)
 					{
 						$course = getCourse($course, 'basic');
-						print("				<li class=\"position-relative\"><a class=\"stretched-link\" href=\"./?code=" . $course->code . "\">" . $course->code);
+						print("				<li class=\"position-relative\"><a class=\"stretched-link\" href=\"./" . $staffDisplayScript . "?code=" . $course->code . "\">" . $course->code);
 						if ( $course->name )
 						{
 							print(" — <span class=\"font-italic\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</span>");
@@ -514,7 +605,7 @@ else
 	print("</head>\n");
 	
 	print("<body class=\"container\">\n");
-	print("<h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"./\">CECS Professional Skills Mapping</a></h1>\n");
+	print("<h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"./" . $staffDisplayScript . "\">CECS Professional Skills Mapping</a></h1>\n");
 	
 	print("<h2>Mapped degree programs &amp; majors</h2>\n");
 	
@@ -565,9 +656,9 @@ else
 			if ( isset($program->majors) && !empty($program->majors) )
 			{
 				print("		<tr><td class=\"small position-relative\">");
-				print("<a class=\"stretched-link\" href=\"./?code=" . $program->code . "\">" . $program->code . "</a>");
+				print("<a class=\"stretched-link\" href=\"./" . $staffDisplayScript . "?code=" . $program->code . "\">" . $program->code . "</a>");
 				print("</td><td class=\"position-relative\">");
-				print("<a class=\"stretched-link\" href=\"./?code=" . $program->code . "\"><span class=\"text-decoration-underline\">engineering core</span>: " . htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . "</a>");
+				print("<a class=\"stretched-link\" href=\"./" . $staffDisplayScript . "?code=" . $program->code . "\"><span class=\"text-decoration-underline\">engineering core</span>: " . htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . "</a>");
 				print("</td><td class=\"text-center position-relative\">");
 				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($program->code) . "\">" . biBoxArrowUpRight() . "</a>");
 				print("</td></tr>\n");
@@ -577,9 +668,9 @@ else
 					{
 						if ( $major->code == $majorCode ) {
 							print("		<tr><td class=\"small position-relative\">");
-							print("<a class=\"stretched-link\" href=\"./?code=" . $major->code . "\">" . $major->code . "</a>");
+							print("<a class=\"stretched-link\" href=\"./" . $staffDisplayScript . "?code=" . $major->code . "\">" . $major->code . "</a>");
 							print("</td><td class=\"position-relative\">");
-							print("<a class=\"stretched-link\" href=\"./?code=" . $major->code . "\"><span class=\"text-decoration-underline\">major</span>: " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . "</a>");
+							print("<a class=\"stretched-link\" href=\"./" . $staffDisplayScript . "?code=" . $major->code . "\"><span class=\"text-decoration-underline\">major</span>: " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . "</a>");
 							print("</td><td class=\"text-center position-relative\">");
 							print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($major->code) . "\">" . biBoxArrowUpRight() . "</a>");
 							print("</td></tr>\n");
@@ -596,7 +687,7 @@ else
 	print("</div>\n");
 	
 	print("<h2>Complete list of mapped courses</h2>\n");
-	$courses = getAllCourseCodes();
+	$courses = listAllCourseCodes();
 	print("<div class=\"container\">\n");
 	if ( $courses )
 	{
@@ -608,9 +699,9 @@ else
 		foreach ($courses as $code)
 		{
 			print("		<tr><td class=\"small position-relative\">");
-			print("<a class=\"stretched-link\" href=\"./?code=" . $code . "\">" . $code . "</a>");
+			print("<a class=\"stretched-link\" href=\"./" . $staffDisplayScript . "?code=" . $code . "\">" . $code . "</a>");
 			print("</td><td class=\"position-relative\">");
-			print("<a class=\"stretched-link font-italic\" href=\"./?code=" . $code . "\">");
+			print("<a class=\"stretched-link font-italic\" href=\"./" . $staffDisplayScript . "?code=" . $code . "\">");
 			$course = getCourse($code, 'basic');
 			if ($course)
 			{
