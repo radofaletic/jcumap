@@ -147,7 +147,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					if ( $staffDisplayScript )
 					{
 						$assessmentTypes = listAssessmentTypes();
-						print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment breakdown:</caption>");
+						print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment breakdown</caption>");
 						print("<colgroup><col span=\"2\"><col span=\"1\"><col span=\"1\"><col span=\"" . count($course->learningOutcomes) . "\"></colgroup>");
 						print("<thead><tr><th colspan=\"2\" rowspan=\"2\">assessment item(s)</th><th rowspan=\"2\">category</th><th rowspan=\"2\" class=\"text-center\">weight</th><th colspan=\"" . count($course->learningOutcomes) . "\" class=\"text-center\">percentage breakdown (per 100% item)</th></tr><tr>");
 						foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
@@ -178,8 +178,8 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						if ( $course->assessmentCategorisationSummary )
 						{
 							$assessmentTotals = array_sum($course->assessmentCategorisationSummary);
-							print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment types used across whole subject:</caption>");
-							print("<thead><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to entire course</th></tr></thead><tbody>");
+							print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment types used across whole subject</caption>");
+							print("<thead><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to overall assessment</th></tr></thead><tbody>");
 							foreach ($course->assessmentCategorisationSummary as $assessmentType => $assessmentTypeCredits)
 							{
 								if ( $assessmentTypeCredits > 0.0 )
@@ -326,7 +326,75 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				// display chart of development level learning against each of the competencies
 				if ( $staffDisplayScript )
 				{
-					
+					print("<h2>Mapping of credit points across learning outcomes</h2>\n");
+					print("<div class=\"container\">\n");
+					print("<table class=\"table table-sm small\">\n");
+					print("	<thead><tr><th class=\"col-1\"></th><th class=\"text-left\">0.0</th>");
+					$maxUnits = 1;
+					foreach ($course->mappingData as $competencyLabel => $DLs)
+					{
+						if ( $DLs[1] > $maxUnits )
+						{
+							$maxUnits = ceil($DLs[1]);
+						}
+						if ( $DLs[2] > $maxUnits )
+						{
+							$maxUnits = ceil($DLs[2]);
+						}
+						if ( $DLs[3] > $maxUnits )
+						{
+							$maxUnits = ceil($DLs[3]);
+						}
+					}
+					print("<th class=\"text-right\">" . $maxUnits . ".0</th>");
+					print("</tr></thead>\n");
+					print("	<tbody>\n");
+					foreach ($course->competencies as $competencyKey => $competency)
+					{
+						if ( $competency->level == 1 )
+						{
+							print("		<tr class=\"table-secondary\"><td colspan=\"" . ( $maxUnits + 2) . "\" class=\"font-weight-bold small\">" . $competency->label . " " . $competency->text . "</td></tr>\n");
+						}
+						else if ( $competency->level == 2 )
+						{
+							print("		<tr><td rowspan=\"3\" class=\"text-center align-middle\" data-toggle=\"tooltip\" data-placement=\"left\" data-html=\"true\" title=\"" . $competency->text . "\">" . $competency->label . "</td><td colspan=\"" . ( $maxUnits + 1 ). "\" class=\"align-middle\"><div class=\"progress\">");
+							if ( isset($course->mappingData[$competency->label][1]) && $course->mappingData[$competency->label][1] > 0.0)
+							{
+								$mappingPercentage = 100 * $course->mappingData[$competency->label][1] / $maxUnits;
+								print("<div class=\"progress-bar bg-success text-left\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $mappingPercentage . "\" aria-valuemin=\"0\" aria-valuemax=\"100\">DL1</div>");
+							}
+							else
+							{
+								print("DL1");
+							}
+							print("</div></td></tr>\n");
+							print("		<tr><td colspan=\"" . ( $maxUnits + 1 ). "\" class=\"align-middle\"><div class=\"progress\">");
+							if ( isset($course->mappingData[$competency->label][2]) && $course->mappingData[$competency->label][2] > 0.0)
+							{
+								$mappingPercentage = 100 * $course->mappingData[$competency->label][2] / $maxUnits;
+								print("<div class=\"progress-bar bg-primary text-left\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $mappingPercentage . "\" aria-valuemin=\"0\" aria-valuemax=\"100\">DL2</div>");
+							}
+							else
+							{
+								print("<div class=\"small\">DL2</div>");
+							}
+							print("</div></td></tr>\n");
+							print("		<tr><td colspan=\"" . ( $maxUnits + 1 ). "\"><div class=\"progress\">");
+							if ( isset($course->mappingData[$competency->label][3]) && $course->mappingData[$competency->label][3] > 0.0)
+							{
+								$mappingPercentage = 100 * $course->mappingData[$competency->label][3] / $maxUnits;
+								print("<div class=\"progress-bar bg-danger text-left\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $mappingPercentage . "\" aria-valuemin=\"0\" aria-valuemax=\"100\">DL3</div>");
+							}
+							else
+							{
+								print("<div class=\"small\">DL3</div>");
+							}
+							print("</div></td></tr>\n");
+						}
+					}
+					print("	</tbody>\n");
+					print("</table>\n");
+					print("</div>\n");
 				}
 				
 				// list all EA competencies, and indicate which are addressed in this course
