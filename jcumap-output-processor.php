@@ -36,6 +36,7 @@ function getCourse($code, $detail = 'basic')
 	$data->assessments = array();
 	$data->assessmentsMapping = array();
 	$data->assessmentCategorisationSummary = array();
+	$data->mappingData = array();
 	$data->results = false;
 	
 	$dataFile = "./jcumap-output-files/" . $code . ".xml";
@@ -239,6 +240,20 @@ function getCourse($code, $detail = 'basic')
 								$data->assessmentCategorisationSummary[$typeN] = 0.0 + $assessmentCategorisationSummary;
 							}
 							$typeN++;
+						}
+					}
+					if ( isset($rawXmlData->MappingPlotData1) && $rawXmlData->MappingPlotData1 )
+					{
+						foreach ($rawXmlData->MappingPlotData1->children() as $item)
+						{
+							$key = "" . $item->key->children()[0];
+							$data->mappingData[$key] = array(1 => 0.0, 2 => 0.0, 3 => 0.0);
+							$v = 1;
+							foreach ($item->value->ArrayOfDouble->children() as $value)
+							{
+								$data->mappingData[$key][$v] = 0.0 + $value;
+								$v++;
+							}
 						}
 					}
 				}
