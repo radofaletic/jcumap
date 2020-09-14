@@ -35,9 +35,10 @@ function getCourse($code, $detail = 'basic')
 	$data->learningOutcomesMapping = array();
 	$data->assessments = array();
 	$data->assessmentsMapping = array();
-	$data->result = false;
+	$data->assessmentCategorisationSummary = array();
+	$data->results = false;
 	
-	$dataFile = "./jcumap-output-files/" . $code . "_Data.xml";
+	$dataFile = "./jcumap-output-files/" . $code . ".xml";
 	
 	if ( file_exists($dataFile) )
 	{
@@ -83,6 +84,7 @@ function getCourse($code, $detail = 'basic')
 									if ( isset($competencyLevel1->ChildCompetencies) && $competencyLevel1->ChildCompetencies )
 									{
 										$mapping2 = false;
+										$DL2 = 0;
 										foreach ($competencyLevel1->ChildCompetencies as $competencyLevel2)
 										{
 											$key2 = "" . trim($competencyLevel2->Prefix);
@@ -106,11 +108,16 @@ function getCourse($code, $detail = 'basic')
 												if ( isset($competencyLevel2->DL) )
 												{
 													$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = 0 + $competencyLevel2->DL;
+													if ( $data->learningOutcomesMapping[$learningOutcomeNumber][$key2] > $DL2 )
+													{
+														$DL2 = $data->learningOutcomesMapping[$learningOutcomeNumber][$key2];
+													}
 												}
 												$mapping2 = true;
 											}
 											$data->competencies[$key2] = $competency2;
 											$mapping3 = false;
+											$DL3 = 0;
 											foreach ($competencyLevel2->ChildCompetencies as $competencyLevel3)
 											{
 												$key3 = "" . trim($competencyLevel3->Prefix);
@@ -134,6 +141,10 @@ function getCourse($code, $detail = 'basic')
 													if ( isset($competencyLevel3->DL) )
 													{
 														$data->learningOutcomesMapping[$learningOutcomeNumber][$key3] = 0 + $competencyLevel3->DL;
+														if ( $data->learningOutcomesMapping[$learningOutcomeNumber][$key3] > $DL3 )
+														{
+															$DL3 = $data->learningOutcomesMapping[$learningOutcomeNumber][$key3];
+														}
 													}
 													$mapping3 = true;
 												}
@@ -143,10 +154,22 @@ function getCourse($code, $detail = 'basic')
 											{
 												$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = 1;
 											}
+											if ( isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key2]) && $DL3 > $data->learningOutcomesMapping[$learningOutcomeNumber][$key2] )
+											{
+												$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = $DL3;
+											}
+											if ( $DL3 > $DL2 )
+											{
+												$DL2 = $DL3;
+											}
 										}
 										if ( $mapping2 && !isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key1])  )
 										{
 											$data->learningOutcomesMapping[$learningOutcomeNumber][$key1] = 1;
+										}
+										if ( isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key1]) && $DL2 > $data->learningOutcomesMapping[$learningOutcomeNumber][$key1] )
+										{
+											$data->learningOutcomesMapping[$learningOutcomeNumber][$key1] = $DL2;
 										}
 									}
 								}
@@ -164,6 +187,7 @@ function getCourse($code, $detail = 'basic')
 							}
 						}
 					}
+					// get assessment mappings
 					if ( isset($rawXmlData->MyAssessmentMapping) && $rawXmlData->MyAssessmentMapping && isset($rawXmlData->MyAssessmentMapping->AllAssessment) && $rawXmlData->MyAssessmentMapping->AllAssessment )
 					{
 						$assessmentNumber = 0;
@@ -191,7 +215,7 @@ function getCourse($code, $detail = 'basic')
 	}
 	if ( $detail != 'basic' )
 	{
-		$mappingFile = "./jcumap-output-files/" . $code . "_Result.xml";
+		$mappingFile = "./jcumap-output-files/" . $code . "MappingResult.xml";
 		if ( file_exists($mappingFile) )
 		{
 			$rawXmlData = simplexml_load_file($mappingFile);
@@ -199,7 +223,24 @@ function getCourse($code, $detail = 'basic')
 			{
 				if ( strtoupper(trim($rawXmlData->SubjectInfo->SubjectCode)) == $data->code )
 				{
-					$data->result = $rawXmlData;
+					// get assessment mapping results
+					$assessmentTypes = listAssessmentTypes();
+					foreach ($assessmentTypes as $typeN => $assessmentType)
+					{
+						$data->assessmentCategorisationSummary[$typeN] = 0.0;
+					}
+					if ( isset($rawXmlData->AssessmentCategorisation) && $rawXmlData->AssessmentCategorisation )
+					{
+						$typeN = 0;
+						foreach ($rawXmlData->AssessmentCategorisation->children() as $assessmentCategorisationSummary)
+						{
+							if ( isset($data->assessmentCategorisationSummary[$typeN]) )
+							{
+								$data->assessmentCategorisationSummary[$typeN] = 0.0 + $assessmentCategorisationSummary;
+							}
+							$typeN++;
+						}
+					}
 				}
 			}
 		}
@@ -208,7 +249,7 @@ function getCourse($code, $detail = 'basic')
 	return $data;
 }
 
-function getAllCourseCodes()
+function listAllCourseCodes()
 {
 	$courses = array();
 	$directory = opendir("./jcumap-output-files");
@@ -217,10 +258,122 @@ function getAllCourseCodes()
 		if ( 12 <= strlen($filename) && ctype_upper( substr($filename, 0, 4) ) && ctype_digit( substr($filename, 4, 4) ) && substr($filename, -4) == ".xml" )
 		{
 			$courseCode = substr($filename, 0, 8);
-			$courses[$courseCode] = substr($filename, 0, 8);
+			$courses[$courseCode] = $courseCode;
 		}
     }
+    ksort($courses);
     return $courses;
+}
+
+function listAssessmentTypes()
+{
+	$types = array();
+	
+	$type = new stdClass();
+	$type->category = "Exam";
+	$type->type = "Test/Exam (Invigilated)";
+	$types[0] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Exam";
+	$type->type = "Test/Quiz (Non-Invigilated)";
+	$types[1] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Exam";
+	$type->type = "Skill Test (Demonstration/Laboratory/Studio/Clinic/Field/Other)";
+	$types[2] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Exam";
+	$type->type = "Objective Structured Clinical Examination";
+	$types[3] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Oral &amp; Performance";
+	$type->type = "Creative Work";
+	$types[4] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Oral &amp; Performance";
+	$type->type = "Participation/Leadership";
+	$types[5] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Oral &amp; Performance";
+	$type->type = "Performance (Artistic/Exhibition/Moot Court/Other)";
+	$types[6] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Oral &amp; Performance";
+	$type->type = "Presentation (Seminar/Debate/Forum/Critique/Other)";
+	$types[7] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Oral &amp; Performance";
+	$type->type = "Teamwork Performance Evaluation";
+	$types[8] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Written Discourse";
+	$type->type = "Dissertation/Thesis/Research Paper";
+	$types[9] = $type;
+	
+	$type->category = "Written Discourse";
+	$type->type = "Journal (Field/WIL/Laboratory/Reflective/Other)";
+	$types[10] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Written Discourse";
+	$type->type = "Portfolio";
+	$types[11] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Written Discourse";
+	$type->type = "Poster";
+	$types[12] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Written Discourse";
+	$type->type = "Proposal";
+	$types[13] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Written Discourse";
+	$type->type = "Report (Experimental/Analytical)";
+	$types[14] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Written Discourse";
+	$type->type = "Report (Project/Design/Research)";
+	$types[15] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Written Discourse";
+	$type->type = "Review (Literature/Critical)";
+	$types[16] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Written Discourse";
+	$type->type = "Tutorial Submission/Workbook/Logbook";
+	$types[17] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Written Discourse";
+	$type->type = "Other Writing (Abstract/Annotated Bibliography/Case Study/Essay/Other)";
+	$types[18] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Vocational";
+	$type->type = "Professional Practice (Planning/Execution/Report)";
+	$types[19] = $type;
+	
+	$type = new stdClass();
+	$type->category = "Vocational";
+	$type->type = "Software/Manufactured Design/Other Physical Output";
+	$types[20] = $type;
+	
+	return $types;
 }
 
 function generateLinkToProgramsAndCourses($code)
@@ -246,10 +399,4 @@ function generateLinkToProgramsAndCourses($code)
 		$url .= $programPrefix . "/" . $code;
 	}
 	return $url;
-}
-
-function generateHTMLfromJCUMap($inputFile, $outputType = "public")
-{
-	
-	
 }
