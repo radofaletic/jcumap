@@ -1,3 +1,3 @@
 <?php
-$displayInformationForStaff = true;
+$displayInformationForAccreditation = true;
 require_once("./index.php");
