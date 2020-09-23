@@ -29,6 +29,7 @@ $code = false;
 $codeCourse = false;
 $codeMajor = false;
 $codeProgram = false;
+$codeFDD = false;
 if ( isset($_GET['program']) && strlen($_GET['program']) )
 {
 	$tmpCode = strtoupper(trim($_GET['program']));
@@ -56,6 +57,15 @@ if ( isset($_GET['course']) && strlen($_GET['course']) )
 	}
 	$codeCourse = $tmpCode;
 }
+if ( isset($_GET['fdd']) && strlen($_GET['fdd']) )
+{
+	$tmpCode = strtoupper(trim($_GET['fdd']));
+	if ( 3 <= strlen($tmpCode) && ctype_upper($tmpCode) )
+	{
+		$_GET['code'] = $tmpCode;
+	}
+	$codeFDD = $tmpCode;
+}
 if ( isset($_GET['code']) && strlen($_GET['code']) )
 {
 	$code = strtoupper(trim($_GET['code']));
@@ -65,17 +75,22 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 	$program = false;
 	$major = false;
 	$course = false;
-	if ( strlen($code) == 8 && ctype_upper( substr($code, 0, 4) ) && ctype_digit( substr($code, -4) ) )
+	$fdd = false;
+	if ( $codeCourse && strlen($code) == 8 && ctype_upper( substr($code, 0, 4) ) && ctype_digit( substr($code, -4) ) )
 	{
 		$type = 'course';
 	}
-	else if ( strlen($code) == 8 && ctype_upper( substr($code, 0, 4) ) && ctype_upper( substr($code, -3) ) && substr($code, 4, 1) == "-" )
+	else if ( $codeMajor && strlen($code) == 8 && ctype_upper( substr($code, 0, 4) ) && ctype_upper( substr($code, -3) ) && substr($code, 4, 1) == "-" )
 	{
 		$type = 'major';
 	}
-	else if ( strlen($code) == 5 && ctype_upper($code) )
+	else if ( $codeProgram && strlen($code) == 5 && ctype_upper($code) )
 	{
 		$type = 'program';
+	}
+	else if ( $codeFDD && 3 <= strlen($code) && ctype_upper($code) )
+	{
+		$type = 'fdd';
 	}
 	else
 	{
@@ -121,11 +136,17 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				$shortname = htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . " (core)";
 			}
 			break;
+		case 'fdd':
+			$fdd = getProgram($code, 'full');
+			if ( $fdd && $fdd->name )
+			{
+				$name = $code . " — <span class=\"font-italic\">" . $fdd->name . "</span>";
+				$shortname = $code;
+			}
+			break;
 	}
-	if ( $code && $type )
+	if ( !$code || !$type )
 	{
-		
-	} else {
 		$code = false;
 	}
 	
@@ -584,12 +605,12 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				{
 					print("		<tr><th>school: </th><td>" . htmlspecialchars($major->school, ENT_QUOTES|ENT_HTML5) . "</td></tr>\n");
 				}
-				print("		<tr><th>P&amp;C: </th><td class=\"position-relative\">");
+				print("		<tr><th>P&amp;C: </th><td>");
 				if ( $program && isset($program->code) && $program->code )
 				{
-					print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($program->code) . "\">" . generateLinkToProgramsAndCourses($program->code) . "</a><br> ");
+					print("<a href=\"" . generateLinkToProgramsAndCourses($program->code) . "\">" . generateLinkToProgramsAndCourses($program->code) . "</a><br> ");
 				}
-				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($major->code) . "\">" . generateLinkToProgramsAndCourses($major->code) . "</a>");
+				print("<a href=\"" . generateLinkToProgramsAndCourses($major->code) . "\">" . generateLinkToProgramsAndCourses($major->code) . "</a>");
 				print("</td></tr>\n");
 				if ( !( $program && isset($program->name) ) && isset($major->programs) && $major->programs )
 				{
@@ -1405,6 +1426,7 @@ else
 	print("<body class=\"container\">\n");
 	print("<h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"./" . $accreditationDisplayScript . "\">CECS Professional Skills Mapping</a></h1>\n");
 	
+	print("<section>\n");
 	print("<h2>Mapped degree programs &amp; majors</h2>\n");
 	
 	// get the programs
@@ -1441,7 +1463,7 @@ else
 	if ( $programs ) {
 		print("<table class=\"table table-sm table-hover\">\n");
 		print("	<thead>\n");
-		print("		<tr><th class=\"small\">code</th><th>name</th><th class=\"text-center\">P&amp;C</th></tr>\n");
+		print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 		print("	</thead>\n");
 		print("	<tbody>\n");
 		foreach ($programs as $program)
@@ -1484,7 +1506,9 @@ else
 		print('<div class="alert alert-danger" role="alert"><h3 class="alert-heading">Error</h3><p>Could not load programs and majors.</p></div>' . "\n");
 	}
 	print("</div>\n");
+	print("</section>\n");
 	
+	print("<section>\n");
 	print("<h2>Mapped courses</h2>\n");
 	$courses = listAllCourseCodes();
 	$engnCourses = array();
@@ -1503,13 +1527,21 @@ else
 			$compCourses[$courseKey] = $code;
 		}
 	}
+	$otherCourses = array();
+	foreach ($courses as $courseKey => $code)
+	{
+		if ( substr($code, 0, 4) != "ENGN" && substr($code, 0, 4) != "COMP" )
+		{
+			$otherCourses[$courseKey] = $code;
+		}
+	}
 	if ( $engnCourses )
 	{
 		print("<div class=\"container\">\n");
 		print("<table class=\"table table-sm table-hover caption-top\">\n");
 		print("	<caption class=\"h3\">Engineering</caption>\n");
 		print("	<thead>\n");
-		print("		<tr><th class=\"small\">code</th><th>name</th><th class=\"text-center\">P&amp;C</th></tr>\n");
+		print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 		print("	</thead>\n");
 		print("	<tbody>\n");
 		foreach ($engnCourses as $code)
@@ -1522,7 +1554,7 @@ else
 			}
 			else
 			{
-				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "?code=" . $code . "\">" . $code . "</a>");
+				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . $code . "</a>");
 			}
 			print("</td><td class=\"position-relative\">");
 			if ( $course->name )
@@ -1543,7 +1575,7 @@ else
 		print("<table class=\"table table-sm table-hover caption-top\">\n");
 		print("	<caption class=\"h3\">Computing</caption>\n");
 		print("	<thead>\n");
-		print("		<tr><th class=\"small\">code</th><th>name</th><th class=\"text-center\">P&amp;C</th></tr>\n");
+		print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 		print("	</thead>\n");
 		print("	<tbody>\n");
 		foreach ($compCourses as $code)
@@ -1556,7 +1588,7 @@ else
 			}
 			else
 			{
-				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "?code=" . $code . "\">" . $code . "</a>");
+				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . $code . "</a>");
 			}
 			print("</td><td class=\"position-relative\">");
 			if ( $course->name )
@@ -1571,11 +1603,94 @@ else
 		print("</table>\n");
 		print("</div>\n");
 	}
-	if ( !$engnCourses && ! $compCourses )
+	if ( $otherCourses )
+	{
+		print("<div class=\"container\">\n");
+		print("<table class=\"table table-sm table-hover caption-top\">\n");
+		print("	<caption class=\"h3\">Other</caption>\n");
+		print("	<thead>\n");
+		print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
+		print("	</thead>\n");
+		print("	<tbody>\n");
+		foreach ($otherCourses as $code)
+		{
+			$course = getCourse($code, 'basic');
+			print("		<tr><td class=\"small position-relative\">");
+			if ( $course->name )
+			{
+				print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?course=" . $code . "\">" . $code . "</a>");
+			}
+			else
+			{
+				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . $code . "</a>");
+			}
+			print("</td><td class=\"position-relative\">");
+			if ( $course->name )
+			{
+				print("<a class=\"stretched-link font-italic\" href=\"./" . $accreditationDisplayScript . "?course=" . $code . "\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</a>");
+			}
+			print("</td><td class=\"text-center position-relative\">");
+			print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . biBoxArrowUpRight() . "</a>");
+			print("</td></tr>\n");
+		}
+		print("	</tbody>\n");
+		print("</table>\n");
+		print("</div>\n");
+	}
+	if ( !$engnCourses && !$compCourses )
 	{
 		print('<div class=\"container\"><div class="alert alert-warning" role="alert"><h3 class="alert-warning">Notice</h3><p>Could not find any ENGN or COMP course mappings.</p></div></div>' . "\n");
 	}
+	print("</section>\n");
+	
+	if ( $accreditationDisplayScript )
+	{
+		print("<section>\n");
+		print("<h2>Mapped dual degree (<abbr title=\"Flexible Double Degree\">FDD</abbr>) combinations</h2>\n");
+		$fdds = listAllPrograms();
+		if ( $fdds )
+		{
+			print("<div class=\"container\">\n");
+			print("<table class=\"table table-sm table-hover caption-top\">\n");
+			print("	<thead>\n");
+			print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
+			print("	</thead>\n");
+			print("	<tbody>\n");
+			foreach ($fdds as $code)
+			{
+				$fdd = getProgram($code, 'basic');
+				print("		<tr><td class=\"small position-relative\">");
+				if ( $fdd->name )
+				{
+					print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . $code . "</a>");
+				}
+				else
+				{
+					print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . $code . "</a>");
+				}
+				print("</td><td class=\"position-relative\">");
+				if ( $fdd->name )
+				{
+					print("<a class=\"stretched-link font-italic\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . htmlspecialchars($fdd->name, ENT_QUOTES|ENT_HTML5) . "</a>");
+				}
+				print("</td><td class=\"text-center position-relative\">");
+				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . biBoxArrowUpRight() . "</a>");
+				print("</td></tr>\n");
+			}
+			print("	</tbody>\n");
+			print("</table>\n");
+			print("</div>\n");
+		}
+		else
+		{
+			print('<div class=\"container\"><div class="alert alert-warning" role="alert"><h3 class="alert-warning">Notice</h3><p>Could not find any degree mappings.</p></div></div>' . "\n");
+		}
+		print("</section>\n");
+	}
+	
+	
 	print("</body>\n");
+	
 }
 ?>
 </html>
