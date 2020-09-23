@@ -22,7 +22,7 @@ function getDefinition($code)
 	return $json;
 }
 
-function getCourse($code, $detail = 'basic')
+function getCourse($code, $detail = 'basic', $type = 'course')
 {
 	$data = new stdClass();
 	$data->code = $code;
@@ -39,7 +39,13 @@ function getCourse($code, $detail = 'basic')
 	$data->mappingData = array();
 	$data->results = false;
 	
-	$dataFile = "./jcumap-output-files/" . $code . ".xml";
+	$dataDirectory = "courses";
+	if ( $type == "program" )
+	{
+		$dataDirectory = "programs";
+	}
+	
+	$dataFile = "./" . $dataDirectory . "/" . $code . ".xml";
 	
 	if ( file_exists($dataFile) )
 	{
@@ -59,118 +65,122 @@ function getCourse($code, $detail = 'basic')
 						$learningOutcomeNumber = 0;
 						foreach ($rawXmlData->SLOsAndMapping->children() as $mapping)
 						{
-							$data->learningOutcomes[$learningOutcomeNumber] = htmlspecialchars(trim($mapping->SubjectLearningOutcome), ENT_QUOTES|ENT_HTML5);
-							$data->learningOutcomesMapping[$learningOutcomeNumber] = array();
-							if ( isset($mapping->PrimaryMapping) && isset($mapping->PrimaryMapping->ChildCompetencies) && $mapping->PrimaryMapping->ChildCompetencies )
+							$mapping->SubjectLearningOutcome = trim($mapping->SubjectLearningOutcome);
+							if ( $mapping->SubjectLearningOutcome )
 							{
-								$data->competencyName = htmlspecialchars($mapping->PrimaryMapping->DescriptionText, ENT_QUOTES|ENT_HTML5);
-								foreach ($mapping->PrimaryMapping->ChildCompetencies as $competencyLevel1)
+								$data->learningOutcomes[$learningOutcomeNumber] = htmlspecialchars($mapping->SubjectLearningOutcome, ENT_QUOTES|ENT_HTML5);
+								$data->learningOutcomesMapping[$learningOutcomeNumber] = array();
+								if ( isset($mapping->PrimaryMapping) && isset($mapping->PrimaryMapping->ChildCompetencies) && $mapping->PrimaryMapping->ChildCompetencies )
 								{
-									$key1 = "" . trim($competencyLevel1->Prefix);
-									$competency1 = new stdClass();
-									$competency1->level = 1;
-									$competency1->sublevels = count($competencyLevel1->ChildCompetencies);
-									$competency1->label = trim($competencyLevel1->Prefix);
-									$competency1->text = str_replace(array("[b]", "[/b]", "[i]", "[/i]", "\\r\\n", "\\n"), array("<b>", "</b>", "<i>", "</i>", "<br>", "<br>"), htmlspecialchars(trim($competencyLevel1->DescriptionText), ENT_QUOTES|ENT_HTML5));
-									$competency1->competencyLevel = 0;
-									if ( isset($competencyLevel1->IsTicked) && $competencyLevel1->IsTicked == 'true' )
+									$data->competencyName = htmlspecialchars($mapping->PrimaryMapping->DescriptionText, ENT_QUOTES|ENT_HTML5);
+									foreach ($mapping->PrimaryMapping->ChildCompetencies as $competencyLevel1)
 									{
-										$data->learningOutcomesMapping[$learningOutcomeNumber][$key1] = 1;
-										if ( isset($competencyLevel1->DL) )
-										{
-											$data->learningOutcomesMapping[$learningOutcomeNumber][$key1] = 0 + $competencyLevel1->DL;
-										}
-									}
-									$data->competencies[$key1] = $competency1;
-									if ( isset($competencyLevel1->ChildCompetencies) && $competencyLevel1->ChildCompetencies )
-									{
-										$mapping2 = false;
-										$DL2 = 0;
-										foreach ($competencyLevel1->ChildCompetencies as $competencyLevel2)
-										{
-											$key2 = "" . trim($competencyLevel2->Prefix);
-											if ( substr($key2, 0, strlen($key1)) != $key1 )
-											{
-												if ( substr($key1, 0, -1) != "." )
-												{
-													$key2 = "." . $key2;
-												}
-												$key2 = $key1 . $key2;
-											}
-											$competency2 = new stdClass();
-											$competency2->level = 2;
-											$competency2->sublevels = count($competencyLevel2->ChildCompetencies);
-											$competency2->label = trim($competencyLevel2->Prefix);
-											$competency2->text = str_replace(array("[b]", "[/b]", "[i]", "[/i]", "\\r\\n", "\\n"), array("<b>", "</b>", "<i>", "</i>", "<br>", "<br>"), htmlspecialchars(trim($competencyLevel2->DescriptionText), ENT_QUOTES|ENT_HTML5));
-											$competency2->competencyLevel = 0;
-											if ( isset($competencyLevel2->IsTicked) && $competencyLevel2->IsTicked == 'true' )
-											{
-												$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = 1;
-												if ( isset($competencyLevel2->DL) )
-												{
-													$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = 0 + $competencyLevel2->DL;
-													if ( $data->learningOutcomesMapping[$learningOutcomeNumber][$key2] > $DL2 )
-													{
-														$DL2 = $data->learningOutcomesMapping[$learningOutcomeNumber][$key2];
-													}
-												}
-												$mapping2 = true;
-											}
-											$data->competencies[$key2] = $competency2;
-											$mapping3 = false;
-											$DL3 = 0;
-											foreach ($competencyLevel2->ChildCompetencies as $competencyLevel3)
-											{
-												$key3 = "" . trim($competencyLevel3->Prefix);
-												if ( substr($key3, 0, strlen($key2)) != $key2 )
-												{
-													if ( substr($key2, 0, -1) != "." )
-													{
-														$key3 = "." . $key3;
-													}
-													$key3 = $key2 . $key3;
-												}
-												$competency3 = new stdClass();
-												$competency3->level = 3;
-												$competency3->sublevels = 0;
-												$competency3->label = trim($competencyLevel3->Prefix);
-												$competency3->text = str_replace(array("[b]", "[/b]", "[i]", "[/i]", "\\r\\n", "\\n"), array("<b>", "</b>", "<i>", "</i>", "<br>", "<br>"), htmlspecialchars(trim($competencyLevel3->DescriptionText), ENT_QUOTES|ENT_HTML5));
-												$competency3->competencyLevel = 0;
-												if ( isset($competencyLevel3->IsTicked) && $competencyLevel3->IsTicked == 'true' )
-												{
-													$data->learningOutcomesMapping[$learningOutcomeNumber][$key3] = 1;
-													if ( isset($competencyLevel3->DL) )
-													{
-														$data->learningOutcomesMapping[$learningOutcomeNumber][$key3] = 0 + $competencyLevel3->DL;
-														if ( $data->learningOutcomesMapping[$learningOutcomeNumber][$key3] > $DL3 )
-														{
-															$DL3 = $data->learningOutcomesMapping[$learningOutcomeNumber][$key3];
-														}
-													}
-													$mapping3 = true;
-												}
-												$data->competencies[$key3] = $competency3;
-											}
-											if ( $mapping3 && !isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key2]) )
-											{
-												$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = 1;
-											}
-											if ( isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key2]) && $DL3 > $data->learningOutcomesMapping[$learningOutcomeNumber][$key2] )
-											{
-												$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = $DL3;
-											}
-											if ( $DL3 > $DL2 )
-											{
-												$DL2 = $DL3;
-											}
-										}
-										if ( $mapping2 && !isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key1])  )
+										$key1 = "" . trim($competencyLevel1->Prefix);
+										$competency1 = new stdClass();
+										$competency1->level = 1;
+										$competency1->sublevels = count($competencyLevel1->ChildCompetencies);
+										$competency1->label = trim($competencyLevel1->Prefix);
+										$competency1->text = str_replace(array("[b]", "[/b]", "[i]", "[/i]", "\\r\\n", "\\n"), array("<b>", "</b>", "<i>", "</i>", "<br>", "<br>"), htmlspecialchars(trim($competencyLevel1->DescriptionText), ENT_QUOTES|ENT_HTML5));
+										$competency1->competencyLevel = 0;
+										if ( isset($competencyLevel1->IsTicked) && $competencyLevel1->IsTicked == 'true' )
 										{
 											$data->learningOutcomesMapping[$learningOutcomeNumber][$key1] = 1;
+											if ( isset($competencyLevel1->DL) )
+											{
+												$data->learningOutcomesMapping[$learningOutcomeNumber][$key1] = 0 + $competencyLevel1->DL;
+											}
 										}
-										if ( isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key1]) && $DL2 > $data->learningOutcomesMapping[$learningOutcomeNumber][$key1] )
+										$data->competencies[$key1] = $competency1;
+										if ( isset($competencyLevel1->ChildCompetencies) && $competencyLevel1->ChildCompetencies )
 										{
-											$data->learningOutcomesMapping[$learningOutcomeNumber][$key1] = $DL2;
+											$mapping2 = false;
+											$DL2 = 0;
+											foreach ($competencyLevel1->ChildCompetencies as $competencyLevel2)
+											{
+												$key2 = "" . trim($competencyLevel2->Prefix);
+												if ( substr($key2, 0, strlen($key1)) != $key1 )
+												{
+													if ( substr($key1, 0, -1) != "." )
+													{
+														$key2 = "." . $key2;
+													}
+													$key2 = $key1 . $key2;
+												}
+												$competency2 = new stdClass();
+												$competency2->level = 2;
+												$competency2->sublevels = count($competencyLevel2->ChildCompetencies);
+												$competency2->label = trim($competencyLevel2->Prefix);
+												$competency2->text = str_replace(array("[b]", "[/b]", "[i]", "[/i]", "\\r\\n", "\\n"), array("<b>", "</b>", "<i>", "</i>", "<br>", "<br>"), htmlspecialchars(trim($competencyLevel2->DescriptionText), ENT_QUOTES|ENT_HTML5));
+												$competency2->competencyLevel = 0;
+												if ( isset($competencyLevel2->IsTicked) && $competencyLevel2->IsTicked == 'true' )
+												{
+													$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = 1;
+													if ( isset($competencyLevel2->DL) )
+													{
+														$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = 0 + $competencyLevel2->DL;
+														if ( $data->learningOutcomesMapping[$learningOutcomeNumber][$key2] > $DL2 )
+														{
+															$DL2 = $data->learningOutcomesMapping[$learningOutcomeNumber][$key2];
+														}
+													}
+													$mapping2 = true;
+												}
+												$data->competencies[$key2] = $competency2;
+												$mapping3 = false;
+												$DL3 = 0;
+												foreach ($competencyLevel2->ChildCompetencies as $competencyLevel3)
+												{
+													$key3 = "" . trim($competencyLevel3->Prefix);
+													if ( substr($key3, 0, strlen($key2)) != $key2 )
+													{
+														if ( substr($key2, 0, -1) != "." )
+														{
+															$key3 = "." . $key3;
+														}
+														$key3 = $key2 . $key3;
+													}
+													$competency3 = new stdClass();
+													$competency3->level = 3;
+													$competency3->sublevels = 0;
+													$competency3->label = trim($competencyLevel3->Prefix);
+													$competency3->text = str_replace(array("[b]", "[/b]", "[i]", "[/i]", "\\r\\n", "\\n"), array("<b>", "</b>", "<i>", "</i>", "<br>", "<br>"), htmlspecialchars(trim($competencyLevel3->DescriptionText), ENT_QUOTES|ENT_HTML5));
+													$competency3->competencyLevel = 0;
+													if ( isset($competencyLevel3->IsTicked) && $competencyLevel3->IsTicked == 'true' )
+													{
+														$data->learningOutcomesMapping[$learningOutcomeNumber][$key3] = 1;
+														if ( isset($competencyLevel3->DL) )
+														{
+															$data->learningOutcomesMapping[$learningOutcomeNumber][$key3] = 0 + $competencyLevel3->DL;
+															if ( $data->learningOutcomesMapping[$learningOutcomeNumber][$key3] > $DL3 )
+															{
+																$DL3 = $data->learningOutcomesMapping[$learningOutcomeNumber][$key3];
+															}
+														}
+														$mapping3 = true;
+													}
+													$data->competencies[$key3] = $competency3;
+												}
+												if ( $mapping3 && !isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key2]) )
+												{
+													$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = 1;
+												}
+												if ( isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key2]) && $DL3 > $data->learningOutcomesMapping[$learningOutcomeNumber][$key2] )
+												{
+													$data->learningOutcomesMapping[$learningOutcomeNumber][$key2] = $DL3;
+												}
+												if ( $DL3 > $DL2 )
+												{
+													$DL2 = $DL3;
+												}
+											}
+											if ( $mapping2 && !isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key1])  )
+											{
+												$data->learningOutcomesMapping[$learningOutcomeNumber][$key1] = 1;
+											}
+											if ( isset($data->learningOutcomesMapping[$learningOutcomeNumber][$key1]) && $DL2 > $data->learningOutcomesMapping[$learningOutcomeNumber][$key1] )
+											{
+												$data->learningOutcomesMapping[$learningOutcomeNumber][$key1] = $DL2;
+											}
 										}
 									}
 								}
@@ -216,7 +226,7 @@ function getCourse($code, $detail = 'basic')
 	}
 	if ( $detail != 'basic' )
 	{
-		$mappingFile = "./jcumap-output-files/" . $code . "MappingResult.xml";
+		$mappingFile = "./" . $dataDirectory . "/" . $code . "MappingResult.xml";
 		if ( file_exists($mappingFile) )
 		{
 			$rawXmlData = simplexml_load_file($mappingFile);
@@ -264,13 +274,18 @@ function getCourse($code, $detail = 'basic')
 	return $data;
 }
 
+function getProgram($code, $details = 'basic')
+{
+	return getCourse($code, $details, 'program');
+}
+
 function listAllCourseCodes()
 {
 	$courses = array();
-	$directory = opendir("./jcumap-output-files");
+	$directory = opendir("./courses");
 	while ( false !== ( $filename = readdir($directory) ) )
 	{
-		if ( 12 <= strlen($filename) && ctype_upper( substr($filename, 0, 4) ) && ctype_digit( substr($filename, 4, 4) ) && substr($filename, -4) == ".xml" )
+		if ( 12 <= strlen($filename) && ctype_upper( substr($filename, 0, 4) ) && ctype_digit( substr($filename, 4, 4) ) && substr($filename, -4) == ".xml" && substr($filename, -17) != "MappingResult.xml" )
 		{
 			$courseCode = substr($filename, 0, 8);
 			$courses[$courseCode] = $courseCode;
@@ -278,6 +293,22 @@ function listAllCourseCodes()
     }
     ksort($courses);
     return $courses;
+}
+
+function listAllPrograms()
+{
+	$programs = array();
+	$directory = opendir("./programs");
+	while ( false !== ( $filename = readdir($directory) ) )
+	{
+		if ( 7 <= strlen($filename) && ctype_upper( substr($filename, 0, -4) ) && substr($filename, -4) == ".xml" && substr($filename, -17) != "MappingResult.xml" )
+		{
+			$program = substr($filename, 0, -4);
+			$programs[$program] = $program;
+		}
+    }
+    ksort($programs);
+    return $programs;
 }
 
 function listAssessmentTypes()
@@ -409,7 +440,7 @@ function generateLinkToProgramsAndCourses($code)
 	{
 		$url .= $majorPrefix . "/" . $code;
 	}
-	else if ( strlen($code) == 5 && ctype_upper($code) )
+	else if ( 3 <= strlen($code) && ctype_upper($code) )
 	{
 		$url .= $programPrefix . "/" . $code;
 	}
