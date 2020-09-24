@@ -37,10 +37,9 @@ function getCourse($code, $detail = 'basic', $type = 'course')
 	$data->assessmentsMapping = array();
 	$data->assessmentCategorisationSummary = array();
 	$data->mappingData = array();
-	$data->results = false;
 	
 	$dataDirectory = "courses";
-	if ( $type == "program" )
+	if ( $type == "program" || $type == "fdd" )
 	{
 		$dataDirectory = "programs";
 	}
@@ -56,7 +55,10 @@ function getCourse($code, $detail = 'basic', $type = 'course')
 			{
 				$data->name = trim($rawXmlData->SubjectInfo->SubjectName);
 				$data->description = trim($rawXmlData->SubjectInfo->SubjectDescription);
-				$data->units = trim($rawXmlData->SubjectInfo->CreditPoints);
+				if ( $type != 'fdd' )
+				{
+					$data->units = trim($rawXmlData->SubjectInfo->CreditPoints);
+				}
 				if ( $detail != 'basic' )
 				{
 					$data->data = $rawXmlData;
@@ -188,7 +190,7 @@ function getCourse($code, $detail = 'basic', $type = 'course')
 							$learningOutcomeNumber++;
 						}
 					}
-					foreach ($data->learningOutcomesMapping as $learningOutcomeMapping)
+					foreach ($data->learningOutcomesMapping as $learningOutcomeNumber => $learningOutcomeMapping)
 					{
 						foreach ($learningOutcomeMapping as $key => $DL)
 						{
@@ -196,10 +198,15 @@ function getCourse($code, $detail = 'basic', $type = 'course')
 							{
 								$data->competencies[$key]->competencyLevel = $DL;
 							}
+							if ( $type == 'fdd' && substr($key, 0, 1) == "2" )
+							{
+								$data->competencies[$key]->competencyLevel = 0;
+								$data->learningOutcomesMapping[$learningOutcomeNumber][$key] = 0;
+							}
 						}
 					}
 					// get assessment mappings
-					if ( isset($rawXmlData->MyAssessmentMapping) && $rawXmlData->MyAssessmentMapping && isset($rawXmlData->MyAssessmentMapping->AllAssessment) && $rawXmlData->MyAssessmentMapping->AllAssessment )
+					if ( $type == 'course' && isset($rawXmlData->MyAssessmentMapping) && $rawXmlData->MyAssessmentMapping && isset($rawXmlData->MyAssessmentMapping->AllAssessment) && $rawXmlData->MyAssessmentMapping->AllAssessment )
 					{
 						$assessmentNumber = 0;
 						foreach ($rawXmlData->MyAssessmentMapping->AllAssessment->children() as $assessmentItem)
@@ -235,21 +242,24 @@ function getCourse($code, $detail = 'basic', $type = 'course')
 				if ( strtoupper(trim($rawXmlData->SubjectInfo->SubjectCode)) == $data->code )
 				{
 					// get assessment mapping results
-					$assessmentTypes = listAssessmentTypes();
-					foreach ($assessmentTypes as $typeN => $assessmentType)
+					if ( $type == 'course' )
 					{
-						$data->assessmentCategorisationSummary[$typeN] = 0.0;
-					}
-					if ( isset($rawXmlData->AssessmentCategorisation) && $rawXmlData->AssessmentCategorisation )
-					{
-						$typeN = 0;
-						foreach ($rawXmlData->AssessmentCategorisation->children() as $assessmentCategorisationSummary)
+						$assessmentTypes = listAssessmentTypes();
+						foreach ($assessmentTypes as $typeN => $assessmentType)
 						{
-							if ( isset($data->assessmentCategorisationSummary[$typeN]) )
+							$data->assessmentCategorisationSummary[$typeN] = 0.0;
+						}
+						if ( isset($rawXmlData->AssessmentCategorisation) && $rawXmlData->AssessmentCategorisation )
+						{
+							$typeN = 0;
+							foreach ($rawXmlData->AssessmentCategorisation->children() as $assessmentCategorisationSummary)
 							{
-								$data->assessmentCategorisationSummary[$typeN] = 0.0 + $assessmentCategorisationSummary;
+								if ( isset($data->assessmentCategorisationSummary[$typeN]) )
+								{
+									$data->assessmentCategorisationSummary[$typeN] = 0.0 + $assessmentCategorisationSummary;
+								}
+								$typeN++;
 							}
-							$typeN++;
 						}
 					}
 					if ( isset($rawXmlData->MappingPlotData1) && $rawXmlData->MappingPlotData1 )
@@ -261,7 +271,14 @@ function getCourse($code, $detail = 'basic', $type = 'course')
 							$v = 1;
 							foreach ($item->value->ArrayOfDouble->children() as $value)
 							{
-								$data->mappingData[$key][$v] = 0.0 + $value;
+								if ( $type != 'fdd' || substr($key, 0, 1) != "2" )
+								{
+									$data->mappingData[$key][$v] = 0.0 + $value;
+									if ( $type == 'fdd' )
+									{
+										$data->units += $data->mappingData[$key][$v];
+									}
+								}
 								$v++;
 							}
 						}
@@ -277,6 +294,11 @@ function getCourse($code, $detail = 'basic', $type = 'course')
 function getProgram($code, $details = 'basic')
 {
 	return getCourse($code, $details, 'program');
+}
+
+function getFDD($code, $details = 'basic')
+{
+	return getCourse($code, $details, 'fdd');
 }
 
 function listAllCourseCodes()
