@@ -137,7 +137,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 			}
 			break;
 		case 'fdd':
-			$fdd = getProgram($code, 'full');
+			$fdd = getFDD($code, 'full');
 			if ( $fdd && $fdd->name )
 			{
 				$name = $code . " — <span class=\"font-italic\">" . $fdd->name . "</span>";
@@ -204,7 +204,10 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					print("		<tr><th>learning outcomes: </th><td class=\"small\"><ol>");
 					foreach ($course->learningOutcomes as $learningOutcome)
 					{
-						print("<li>" . $learningOutcome . "</li>");
+						if ( $learningOutcome )
+						{
+							print("<li>" . $learningOutcome . "</li>");
+						}
 					}
 					print("</ol></td></tr>\n");
 				}
@@ -341,56 +344,59 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("	<tbody>\n");
 				foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
 				{
-					print("		<tr><td>" . ( $learningOutcomeN + 1 ) . ". </td><td class=\"small\">" . $learningOutcome . "</td>");
-					foreach ($course->competencies as $competencyKey => $competency)
+					if ( $learningOutcome )
 					{
-						if ( $competency->level == 2 )
+						print("		<tr><td>" . ( $learningOutcomeN + 1 ) . ". </td><td class=\"small\">" . $learningOutcome . "</td>");
+						foreach ($course->competencies as $competencyKey => $competency)
 						{
-							print("<td class=\"text-center text-success align-middle\">");
-							if ( isset($course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]) && $course->learningOutcomesMapping[$learningOutcomeN][$competencyKey] > 0)
+							if ( $competency->level == 2 )
 							{
-								if ( $accreditationDisplayScript )
+								print("<td class=\"text-center text-success align-middle\">");
+								if ( isset($course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]) && $course->learningOutcomesMapping[$learningOutcomeN][$competencyKey] > 0)
 								{
-									for ($i=0; $i<$course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]; $i++)
+									if ( $accreditationDisplayScript )
+									{
+										for ($i=0; $i<$course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]; $i++)
+										{
+											print("✓");
+										}
+									}
+									else
 									{
 										print("✓");
 									}
 								}
-								else
+								print("</td>");
+							}
+						}
+						if ( $course->assessments )
+						{
+							foreach ($course->assessments as $assessmentN => $assessment)
+							{
+								print("<td class=\"text-center text-success align-middle\"");
+								if ( $accreditationDisplayScript )
+								{
+									print(" data-toggle=\"tooltip\" data-placement=\"top\" data-html=\"true\" title=\"");
+									if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) )
+									{
+										print($course->assessmentsMapping[$assessmentN][$learningOutcomeN]);
+									}
+									else
+									{
+										print("0");
+									}
+									print("% of assessment #" . ( $assessmentN + 1 ) . "\"");
+								}
+								print(">");
+								if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) && $course->assessmentsMapping[$assessmentN][$learningOutcomeN] > 0)
 								{
 									print("✓");
 								}
+								print("</td>");
 							}
-							print("</td>");
 						}
+						print("</tr>\n");
 					}
-					if ( $course->assessments )
-					{
-						foreach ($course->assessments as $assessmentN => $assessment)
-						{
-							print("<td class=\"text-center text-success align-middle\"");
-							if ( $accreditationDisplayScript )
-							{
-								print(" data-toggle=\"tooltip\" data-placement=\"top\" data-html=\"true\" title=\"");
-								if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) )
-								{
-									print($course->assessmentsMapping[$assessmentN][$learningOutcomeN]);
-								}
-								else
-								{
-									print("0");
-								}
-								print("% of assessment #" . ( $assessmentN + 1 ) . "\"");
-							}
-							print(">");
-							if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) && $course->assessmentsMapping[$assessmentN][$learningOutcomeN] > 0)
-							{
-								print("✓");
-							}
-							print("</td>");
-						}
-					}
-					print("</tr>\n");
 				}
 				print("	</tbody>\n");
 				print("</table>\n");
@@ -1369,6 +1375,259 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					print("</section>\n");
 				}
 				break;
+
+
+
+
+
+
+
+
+
+
+/*
+	Display mapping information about the FDD
+*/
+			case 'fdd':
+				print("<section>\n");
+				print("<h2>" . $name . "</h2>\n");
+				print("<div class=\"container\">\n");
+				print("<table class=\"table\">\n");
+				print("	<tbody>\n");
+				if ( isset($fdd->description) && $fdd->description )
+				{
+					print("		<tr><th>description: </th><td class=\"small\">" . str_replace("\n", "<br>\n", $fdd->description) . "</td></tr>\n");
+				}
+				print("		<tr><th>P&amp;C: </th><td class=\"position-relative\"><a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($fdd->code) . "\">" . generateLinkToProgramsAndCourses($fdd->code) . "</a></td></tr>\n");
+				if ( isset($fdd->learningOutcomes) && $fdd->learningOutcomes )
+				{
+					print("		<tr><th>learning outcomes: </th><td class=\"small\"><ol>");
+					foreach ($fdd->learningOutcomes as $learningOutcome)
+					{
+						if ( $learningOutcome )
+						{
+							print("<li>" . $learningOutcome . "</li>");
+						}
+					}
+					print("</ol></td></tr>\n");
+				}
+				if ( isset($fdd->units) )
+				{
+					$unitContribution = number_format($fdd->units / 48, 2);
+					print("		<tr><th>engineering contribution: </th><td>" . $fdd->units . " units (" . $unitContribution . " ");
+					if ( $unitContribution == 1 || $unitContribution == 1.00 )
+					{
+						print("year");
+					}
+					else
+					{
+						print("years");
+					}
+					print(")</td></tr>\n");
+				}
+				print("	</tbody>\n");
+				print("</table>\n");
+				print("</div>\n");
+				print("</section>\n");
+				
+				// table of all learning outcomes mappings (to EA competencies and to assessment items)
+				print("<section>\n");
+				print("<h2>Mapped learning outcomes</h2>\n");
+				print("<div class=\"container\">\n");
+				print("<table class=\"table table-sm table-bordered table-hover small\">\n");
+				print("	<colgroup>\n");
+				print("		<col span=\"2\">\n");
+				foreach ($fdd->competencies as $competencyKey => $competency)
+				{
+					if ( $competency->level == 1 )
+					{
+						print("		<col span=\"" . $competency->sublevels . "\">\n");
+					}
+				}
+				print("	</colgroup>\n");
+				print("	<thead>\n");
+				print("		<tr><th colspan=\"2\" rowspan=\"2\" class=\"text-center align-middle\">learning outcome</th>");
+				foreach ($fdd->competencies as $competencyKey => $competency)
+				{
+					if ( $competency->level == 1 )
+					{
+						print("<th colspan=\"" . $competency->sublevels . "\" class=\"text-center\">" . $competency->label . " " . $competency->text . "</th>");
+					}
+				}
+				print("</tr>\n");
+				print("		<tr>");
+				foreach ($fdd->competencies as $competencyKey => $competency)
+				{
+					if ( $competency->level == 2 )
+					{
+						print("<th class=\"text-center align-middle\" data-toggle=\"tooltip\" data-placement=\"top\" data-html=\"true\" title=\"" . $competency->text . "\">" . $competency->label . "</th>");
+					}
+				}
+				print("</tr>\n");
+				print("	</thead>\n");
+				print("	<tbody>\n");
+				foreach ($fdd->learningOutcomes as $learningOutcomeN => $learningOutcome)
+				{
+					if ( $learningOutcome )
+					{
+						print("		<tr><td>" . ( $learningOutcomeN + 1 ) . ". </td><td class=\"small\">" . $learningOutcome . "</td>");
+						foreach ($fdd->competencies as $competencyKey => $competency)
+						{
+							if ( $competency->level == 2 )
+							{
+								print("<td class=\"text-center text-success align-middle\">");
+								if ( isset($fdd->learningOutcomesMapping[$learningOutcomeN][$competencyKey]) && $fdd->learningOutcomesMapping[$learningOutcomeN][$competencyKey] > 0)
+								{
+									if ( $accreditationDisplayScript )
+									{
+										for ($i=0; $i<$fdd->learningOutcomesMapping[$learningOutcomeN][$competencyKey]; $i++)
+										{
+											print("✓");
+										}
+									}
+									else
+									{
+										print("✓");
+									}
+								}
+								print("</td>");
+							}
+						}
+						print("</tr>\n");
+					}
+				}
+				print("	</tbody>\n");
+				print("</table>\n");
+				print("</div>\n");
+				print("</section>\n");
+				
+				// display chart of development level learning against each of the competencies
+				print("<section>\n");
+				print("<h2>Course contribution towards the " . $fdd->competencyName . "</h2>\n");
+				if ( $accreditationDisplayScript )
+				{
+					print("<p>This table maps how the unit credits of this course contribute towards achievement of the " . $fdd->competencyName . ".</p>\n");
+				}
+				else
+				{
+					print("<p>This table depicts the relative contribution of this course towards the " . $fdd->competencyName . ". <em>Note that this illustration is indicative only, and may not take into account any recent changes to the course. You are advised to review the official course page on P&amp;C for current information.</em>.</p>\n");
+				}
+				$maxUnits = 1;
+				foreach ($fdd->mappingData as $competencyLabel => $DLs)
+				{
+					$maxUnits = max($maxUnits, ceil(array_sum($DLs)));
+				}
+				print("<div class=\"container\">\n");
+				print("<table class=\"table table-sm table-hover small\">\n");
+				if ( $accreditationDisplayScript )
+				{
+					print("	<thead><tr><th class=\"col-1\"></th><th class=\"text-left border-left\">0.0</th>");
+					print("<th class=\"text-right border-right\">" . $maxUnits . ".0</th>");
+					print("</tr></thead>\n");
+				}
+				print("	<tbody>\n");
+				foreach ($fdd->competencies as $competencyKey => $competency)
+				{
+					if ( $competency->level == 1 )
+					{
+						print("		<tr class=\"table-secondary\"><td colspan=\"3\" class=\"font-weight-bold\">" . $competency->label . " " . $competency->text . "</td></tr>\n");
+					}
+					else if ( $competency->level == 2 )
+					{
+						print("		<tr class=\"border-bottom\"><td class=\"text-center align-middle border-right col-1\" data-toggle=\"tooltip\" data-placement=\"left\" data-html=\"true\" title=\"" . $competency->text . "\">" . $competency->label . "</td><td colspan=\"2\" class=\"align-middle\">\n");
+						print("			<div class=\"progress bg-transparent\">");
+						if ( isset($fdd->mappingData[$competency->label][1]) && $fdd->mappingData[$competency->label][1] > 0.0)
+						{
+							$mappingPercentage = 100 * $fdd->mappingData[$competency->label][1] / $maxUnits;
+							print("<div class=\"progress-bar bg-success text-left\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $fdd->mappingData[$competency->label][1] . "\" aria-valuemin=\"0\" aria-valuemax=\"" . $maxUnits . "\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"" . number_format($fdd->mappingData[$competency->label][1], 2) . "\">DL1</div>");
+						}
+						if ( isset($fdd->mappingData[$competency->label][2]) && $fdd->mappingData[$competency->label][2] > 0.0)
+						{
+							$mappingPercentage = 100 * $fdd->mappingData[$competency->label][2] / $maxUnits;
+							print("<div class=\"progress-bar bg-primary text-center\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $fdd->mappingData[$competency->label][2] . "\" aria-valuemin=\"0\" aria-valuemax=\"" . $maxUnits . "\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"" . number_format($fdd->mappingData[$competency->label][2], 2) . "\">DL2</div>");
+						}
+						if ( isset($fdd->mappingData[$competency->label][3]) && $fdd->mappingData[$competency->label][3] > 0.0)
+						{
+							$mappingPercentage = 100 * $fdd->mappingData[$competency->label][3] / $maxUnits;
+							print("<div class=\"progress-bar bg-danger text-right\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $fdd->mappingData[$competency->label][3] . "\" aria-valuemin=\"0\" aria-valuemax=\"" . $maxUnits . "\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"" . number_format($fdd->mappingData[$competency->label][3], 2) . "\">DL3</div>");
+						}
+						print("</div>\n");
+						print("		</td></tr>\n");
+					}
+				}
+				print("	</tbody>\n");
+				print("</table>\n");
+				print("</div>\n");
+				print("</section>\n");
+				
+				// list all EA competencies, and indicate which are addressed in this course
+				print("<section>\n");
+				print("<h2>" . $fdd->competencyName . " — summary</h2>\n");
+				print("<div class=\"container\">\n");
+				print("<table class=\"table table-sm table-hover\">\n");
+				print("	<tbody>\n");
+				foreach ($fdd->competencies as $competencyKey => $competency)
+				{
+					switch ($competency->level)
+					{
+						case 1:
+							print("		<tr class=\"table-secondary\">");
+							if ( $competency->competencyLevel > 0 )
+							{
+								print("<th class=\"text-center text-success align-middle\">");
+								if ( $accreditationDisplayScript )
+								{
+									for ($i=0; $i<$competency->competencyLevel; $i++)
+									{
+										print("✓");
+									}
+								}
+								else
+								{
+									print("✓");
+								}
+								print("</th>");
+							}
+							else
+							{
+								print("<th></th>");
+							}
+							print("<th colspan=\"2\">" . $competency->label . "</th><th colspan=\"2\">" . $competency->text . "</th>");
+							print("</tr>\n");
+							break;
+						case 2:
+							print("		<tr class=\"small\">");
+							if ( $competency->competencyLevel > 0 )
+							{
+								print("<td class=\"text-center text-success align-middle\">");
+								if ( $accreditationDisplayScript )
+								{
+									for ($i=0; $i<$competency->competencyLevel; $i++)
+									{
+										print("✓");
+									}
+								}
+								else
+								{
+									print("✓");
+								}
+								print("</td>");
+							}
+							else
+							{
+								print("<td></td>");
+							}
+							print("<td></td><td>" . $competency->label . "</td><td colspan=\"2\">" . $competency->text . "</td>");
+							print("</tr>\n");
+							break;
+					}
+				}
+				print("	</tbody>\n");
+				print("</table>\n");
+				print("</div>\n");
+				print("</section>\n");
+				
+				break;
 		}
 	}
 	else
@@ -1646,33 +1905,35 @@ else
 	if ( $accreditationDisplayScript )
 	{
 		print("<section>\n");
-		print("<h2>Mapped dual degree (<abbr title=\"Flexible Double Degree\">FDD</abbr>) combinations</h2>\n");
+		print("<h2>Mapped non-engineering degree programs (for <abbr title=\"Flexible Double Degree\">FDD</abbr>s)</h2>\n");
 		$fdds = listAllPrograms();
 		if ( $fdds )
 		{
+			$fddPrograms = array();
+			foreach ($fdds as $code)
+			{
+				$fdd = getFDD($code, 'basic');
+				if ( !in_array($code, $programs) && $fdd->code == $code && $fdd->name )
+				{
+					$fddPrograms[$code] = $fdd->name;
+				}
+			}
+			asort($fddPrograms);
+			
+			
 			print("<div class=\"container\">\n");
 			print("<table class=\"table table-sm table-hover caption-top\">\n");
 			print("	<thead>\n");
 			print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 			print("	</thead>\n");
 			print("	<tbody>\n");
-			foreach ($fdds as $code)
+			foreach ($fddPrograms as $code => $name)
 			{
-				$fdd = getProgram($code, 'basic');
+				$fdd = getFDD($code, 'basic');
 				print("		<tr><td class=\"small position-relative\">");
-				if ( $fdd->name )
-				{
-					print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . $code . "</a>");
-				}
-				else
-				{
-					print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . $code . "</a>");
-				}
+				print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . $code . "</a>");
 				print("</td><td class=\"position-relative\">");
-				if ( $fdd->name )
-				{
-					print("<a class=\"stretched-link font-italic\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . htmlspecialchars($fdd->name, ENT_QUOTES|ENT_HTML5) . "</a>");
-				}
+				print("<a class=\"stretched-link font-italic\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . htmlspecialchars($name, ENT_QUOTES|ENT_HTML5) . "</a>");
 				print("</td><td class=\"text-center position-relative\">");
 				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . biBoxArrowUpRight() . "</a>");
 				print("</td></tr>\n");
