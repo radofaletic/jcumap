@@ -57,7 +57,7 @@ if ( isset($_GET['course']) && strlen($_GET['course']) )
 	}
 	$codeCourse = $tmpCode;
 }
-if ( isset($_GET['fdd']) && strlen($_GET['fdd']) )
+if ( $accreditationDisplayScript && isset($_GET['fdd']) && strlen($_GET['fdd']) )
 {
 	$tmpCode = strtoupper(trim($_GET['fdd']));
 	if ( 3 <= strlen($tmpCode) && ctype_upper($tmpCode) )
@@ -132,16 +132,21 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 			$program = getDefinition($code);
 			if ( $program && isset($program->name) )
 			{
-				$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . " core";
-				$shortname = htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . " (core)";
+				$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5);
+				$shortname = htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5);
+				if ( isset($program->majors) && $program->majors )
+				{
+					$name .= " core";
+					$shortname .= " (core)";
+				}
 			}
 			break;
 		case 'fdd':
 			$fdd = getFDD($code, 'full');
 			if ( $fdd && $fdd->name )
 			{
-				$name = $code . " — <span class=\"font-italic\">" . $fdd->name . "</span>";
-				$shortname = $code;
+				$name = "<span class=\"font-italic\">" . $fdd->name . "</span>";
+				$shortname = $fdd->name;
 			}
 			break;
 	}
@@ -192,7 +197,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("		<tr><th>name: </th><td class=\"font-italic\">" . $course->name . "</td></tr>\n");
 				if ( isset($course->units) )
 				{
-					print("		<tr><th>unit value: </th><td>" . $course->units . "</td></tr>\n");
+					print("		<tr><th>unit value: </th><td>" . number_format($course->units, 0) . "</td></tr>\n");
 				}
 				if ( isset($course->description) && $course->description )
 				{
@@ -1057,7 +1062,16 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				}
 				if ( isset($program->courses) && $program->courses )
 				{
-					print("		<tr><th>courses in core: </th><td class=\"small\" style=\"column-count: 2;\"><ul>\n");
+					print("		<tr><th>courses in ");
+					if ( isset($program->majors) && $program->majors )
+					{
+						print("core");
+					}
+					else
+					{
+						print("program");
+					}
+					print(": </th><td class=\"small\" style=\"column-count: 2;\"><ul>\n");
 					foreach ($program->courses as $courseKey => $course)
 					{
 						$course = getCourse($course, 'full');
@@ -1102,7 +1116,16 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					if ( $assessmentTotals > 0.0 )
 					{
 						print("		<tr><th>assessment: </th><td class=\"small\">");
-						print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment types used across whole core</caption>");
+						print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment types used across whole ");
+						if ( isset($program->majors) && $program->majors )
+						{
+							print("core");
+						}
+						else
+						{
+							print("program");
+						}
+						print("</caption>");
 						print("<thead><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to overall assessment</th></tr></thead><tbody>");
 						foreach ($assessmentCategorisationSummary as $assessmentType => $assessmentTypeCredits)
 						{
@@ -1179,15 +1202,30 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				if ( $programMappingData )
 				{
 					print("<section>\n");
-					print("<h2>Program core cumulative contribution towards the " . $programCompetencyName . "</h2>\n");
+					print("<h2>Program ");
+					if ( isset($program->majors) && $program->majors )
+					{
+						print("core ");
+					}
+					print("cumulative contribution towards the " . $programCompetencyName . "</h2>\n");
 					print("<div class=\"container\">\n");
 					if ( $accreditationDisplayScript )
 					{
-						print("<p>This table maps how the unit credits across this program core cumulatively contribute towards achievement of the " . $programCompetencyName . ".</p>\n");
+						print("<p>This table maps how the unit credits across this program ");
+						if ( isset($program->majors) && $program->majors )
+						{
+							print("core ");
+						}
+						print("cumulatively contribute towards achievement of the " . $programCompetencyName . ".</p>\n");
 					}
 					else
 					{
-						print("<p>This table depicts the relative cumulative contribution of this program core towards the " . $programCompetencyName . ". <em>Note that this illustration is indicative only, and does not take into account the contributions from any additional courses you may take (which includes majors, minors and specialisations)</em>.</p>\n");
+						print("<p>This table depicts the relative cumulative contribution of this program ");
+						if ( isset($program->majors) && $program->majors )
+						{
+							print("core ");
+						}
+						print("towards the " . $programCompetencyName . ". <em>Note that this illustration is indicative only, and does not take into account the contributions from any additional courses you may take (which includes majors, minors and specialisations)</em>.</p>\n");
 					}
 					
 					$maxUnits = 1;
@@ -1277,7 +1315,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					print("</section>\n");
 				}
 				
-				// list all EA competencies, and indicate which are addressed in this program core
+				// list all EA competencies, and indicate which are addressed in this program (core)
 				if ( $programCompetencies )
 				{
 					print("<section>\n");
@@ -1413,8 +1451,8 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				}
 				if ( isset($fdd->units) )
 				{
-					$unitContribution = number_format($fdd->units / 48, 2);
-					print("		<tr><th>engineering contribution: </th><td>" . $fdd->units . " units (" . $unitContribution . " ");
+					$unitContribution = number_format($fdd->units / 48, 1); // 48 units in one year
+					print("		<tr><th>engineering contribution: </th><td>" . number_format($fdd->units, 1) . " units (" . $unitContribution . " ");
 					if ( $unitContribution == 1 || $unitContribution == 1.00 )
 					{
 						print("year");
@@ -1732,15 +1770,20 @@ else
 			print("</td><td class=\"text-center position-relative\">");
 			print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($program->code) . "\">" . biBoxArrowUpRight() . "</a>");
 			print("</td></tr>\n");
-			if ( isset($program->majors) && !empty($program->majors) )
+			print("		<tr><td class=\"small position-relative\">");
+			print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "\">" . $program->code . "</a>");
+			print("</td><td class=\"position-relative\">");
+			print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "\">");
+			if ( $program->majors )
 			{
-				print("		<tr><td class=\"small position-relative\">");
-				print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "\">" . $program->code . "</a>");
-				print("</td><td class=\"position-relative\">");
-				print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "\"><span class=\"text-decoration-underline\">engineering core</span>: " . htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . "</a>");
-				print("</td><td class=\"text-center position-relative\">");
-				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($program->code) . "\">" . biBoxArrowUpRight() . "</a>");
-				print("</td></tr>\n");
+				print("<span class=\"text-decoration-underline\">engineering core</span>: ");
+			}
+			print(htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . "</a>");
+			print("</td><td class=\"text-center position-relative\">");
+			print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($program->code) . "\">" . biBoxArrowUpRight() . "</a>");
+			print("</td></tr>\n");
+			if ( $program->majors )
+			{
 				foreach ($program->majors as $majorCode)
 				{
 					foreach ($majors as $major)
@@ -1924,17 +1967,17 @@ else
 			print("<div class=\"container\">\n");
 			print("<table class=\"table table-sm table-hover caption-top\">\n");
 			print("	<thead>\n");
-			print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
+			print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">eng. years</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 			print("	</thead>\n");
 			print("	<tbody>\n");
 			foreach ($fddPrograms as $code => $name)
 			{
-				$fdd = getFDD($code, 'basic');
+				$fdd = getFDD($code, 'full');
 				print("		<tr><td class=\"small position-relative\">");
 				print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . $code . "</a>");
 				print("</td><td class=\"position-relative\">");
 				print("<a class=\"stretched-link font-italic\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . htmlspecialchars($name, ENT_QUOTES|ENT_HTML5) . "</a>");
-				print("</td><td class=\"text-center position-relative\">");
+				print("</td><td class=\"text-center\">" . number_format($fdd->units / 48, 1) . "</th><td class=\"text-center position-relative\">");
 				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . biBoxArrowUpRight() . "</a>");
 				print("</td></tr>\n");
 			}
