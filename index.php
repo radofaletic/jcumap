@@ -190,6 +190,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 			case 'course':
 				print("<section>\n");
 				print("<h2>" . $name . "</h2>\n");
+				print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: information provided here is indicative only. For full and current course information view the official page on P&amp;C.</div>\n");
 				print("<div class=\"container\">\n");
 				print("<table class=\"table\">\n");
 				print("	<tbody>\n");
@@ -224,7 +225,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						$assessmentTypes = listAssessmentTypes();
 						print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment breakdown</caption>");
 						print("<colgroup><col span=\"2\"><col span=\"1\"><col span=\"1\"><col span=\"" . count($course->learningOutcomes) . "\"></colgroup>");
-						print("<thead><tr><th colspan=\"2\" rowspan=\"2\">assessment item(s)</th><th rowspan=\"2\">category</th><th rowspan=\"2\" class=\"text-center\">weight</th><th colspan=\"" . count($course->learningOutcomes) . "\" class=\"text-center\">percentage breakdown (per 100% item)</th></tr><tr>");
+						print("<thead class=\"bg-light\"><tr><th colspan=\"2\" rowspan=\"2\">assessment item(s)</th><th rowspan=\"2\">category</th><th rowspan=\"2\" class=\"text-center\">weight</th><th colspan=\"" . count($course->learningOutcomes) . "\" class=\"text-center\">percentage breakdown (per 100% item)</th></tr><tr>");
 						foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
 						{
 							print("<th class=\"text-center\" data-toggle=\"tooltip\" data-placement=\"top\" data-html=\"true\" title=\"" . ( $learningOutcomeN + 1 ). ". " . $learningOutcome . "\">" . ( $learningOutcomeN + 1 ). "</th>");
@@ -254,7 +255,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						{
 							$assessmentTotals = array_sum($course->assessmentCategorisationSummary);
 							print("<table class=\"table table-sm table-bordered table-hover caption-top\"><caption class=\"font-italic\">assessment types used across whole subject</caption>");
-							print("<thead><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to overall assessment</th></tr></thead><tbody>");
+							print("<thead class=\"bg-light\"><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to overall assessment</th></tr></thead><tbody>");
 							foreach ($course->assessmentCategorisationSummary as $assessmentType => $assessmentTypeCredits)
 							{
 								if ( $assessmentTypeCredits > 0.0 )
@@ -310,7 +311,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					print("		<col span=\"" . count($course->assessments) . "\">\n");
 				}
 				print("	</colgroup>\n");
-				print("	<thead>\n");
+				print("	<thead class=\"bg-light\">\n");
 				print("		<tr><th colspan=\"2\" rowspan=\"2\" class=\"text-center align-middle\">learning outcome</th>");
 				foreach ($course->competencies as $competencyKey => $competency)
 				{
@@ -428,7 +429,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("<table class=\"table table-sm table-hover small\">\n");
 				if ( $accreditationDisplayScript )
 				{
-					print("	<thead><tr><th class=\"col-1\"></th><th class=\"text-left border-left\">0.0</th>");
+					print("	<thead class=\"bg-light sticky-top\"><tr><th class=\"col-1\"></th><th class=\"text-left border-left\">0.0</th>");
 					print("<th class=\"text-right border-right\">" . $maxUnits . ".0</th>");
 					print("</tr></thead>\n");
 				}
@@ -591,6 +592,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 			case 'major':
 				print("<section>\n");
 				print("<h2>" . $name . "</h2>\n");
+				print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: information provided here is indicative only. For full and current information about this major view the official page on P&amp;C.</div>\n");
 				print("<div class=\"container\">\n");
 				print("<table class=\"table\">\n");
 				print("	<tbody>\n");
@@ -638,7 +640,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				}
 				if ( ( isset($program->courses) && $program->courses ) || ( isset($major->courses) && $major->courses ) )
 				{
-					if ( isset($program->courses) && $program->courses )
+					if ( $codeProgram && isset($program->courses) && $program->courses )
 					{
 						print("		<tr><th>courses in core: </th><td class=\"small\" style=\"column-count: 2;\"><ul>\n");
 						foreach ($program->courses as $courseKey => $course)
@@ -727,7 +729,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								print("major");
 							}
 							print("</caption>");
-							print("<thead><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to overall assessment</th></tr></thead><tbody>");
+							print("<thead class=\"bg-light\"><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to overall assessment</th></tr></thead><tbody>");
 							foreach ($assessmentCategorisationSummary as $assessmentType => $assessmentTypeCredits)
 							{
 								if ( $assessmentTypeCredits > 0.0 )
@@ -849,7 +851,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					print("<table class=\"table table-sm table-hover small\">\n");
 					if ( $accreditationDisplayScript )
 					{
-						print("	<thead><tr><th class=\"col-1\"></th><th class=\"text-left border-left\">0.0</th>");
+						print("	<thead class=\"bg-light sticky-top\"><tr><th class=\"col-1\"></th><th class=\"text-left border-left\">0.0</th>");
 						print("<th class=\"text-right border-right\">" . $maxUnits . ".0</th>");
 						print("</tr></thead>\n");
 					}
@@ -1034,6 +1036,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 			case 'program':
 				print("<section>\n");
 				print("<h2>" . $name . "</h2>\n");
+				print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: information provided here is indicative only. For full and current information about this program view the official page on P&amp;C.</div>\n");
 				print("<div class=\"container\">\n");
 				print("<table class=\"table\">\n");
 				print("	<tbody>\n");
@@ -1126,7 +1129,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 							print("program");
 						}
 						print("</caption>");
-						print("<thead><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to overall assessment</th></tr></thead><tbody>");
+						print("<thead class=\"bg-light\"><tr><th>assessment type</th><th colspan=\"2\" class=\"text-center\">contribution to overall assessment</th></tr></thead><tbody>");
 						foreach ($assessmentCategorisationSummary as $assessmentType => $assessmentTypeCredits)
 						{
 							if ( $assessmentTypeCredits > 0.0 )
@@ -1245,7 +1248,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					print("<table class=\"table table-sm table-hover small\">\n");
 					if ( $accreditationDisplayScript )
 					{
-						print("	<thead><tr><th class=\"col-1\"></th><th class=\"text-left border-left\">0.0</th>");
+						print("	<thead class=\"bg-light sticky-top\"><tr><th class=\"col-1\"></th><th class=\"text-left border-left\">0.0</th>");
 						print("<th class=\"text-right border-right\">" . $maxUnits . ".0</th>");
 						print("</tr></thead>\n");
 					}
@@ -1429,6 +1432,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 			case 'fdd':
 				print("<section>\n");
 				print("<h2>" . $name . "</h2>\n");
+				print("<div class=\"alert alert-warning font-italic\" role=\"alert\">Note: information provided here is indicative only. This program may not be an allowable FDD combination with the ANU engineering degrees. Please see the specific engineering degree rules on P&amp;C for allowable combinations and for full and current information about this degree, or consult with CECS Student Services.</div>\n");
 				print("<div class=\"container\">\n");
 				print("<table class=\"table\">\n");
 				print("	<tbody>\n");
@@ -1483,7 +1487,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					}
 				}
 				print("	</colgroup>\n");
-				print("	<thead>\n");
+				print("	<thead class=\"bg-light\">\n");
 				print("		<tr><th colspan=\"2\" rowspan=\"2\" class=\"text-center align-middle\">learning outcome</th>");
 				foreach ($fdd->competencies as $competencyKey => $competency)
 				{
@@ -1559,7 +1563,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("<table class=\"table table-sm table-hover small\">\n");
 				if ( $accreditationDisplayScript )
 				{
-					print("	<thead><tr><th class=\"col-1\"></th><th class=\"text-left border-left\">0.0</th>");
+					print("	<thead class=\"bg-light sticky-top\"><tr><th class=\"col-1\"></th><th class=\"text-left border-left\">0.0</th>");
 					print("<th class=\"text-right border-right\">" . $maxUnits . ".0</th>");
 					print("</tr></thead>\n");
 				}
@@ -1722,6 +1726,7 @@ else
 	
 	print("<body class=\"container\">\n");
 	print("<h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"./" . $accreditationDisplayScript . "\">CECS Professional Skills Mapping</a></h1>\n");
+	print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: information provided here is indicative only. For full and current information view the official pages on P&amp;C.</div>\n");
 	
 	print("<section>\n");
 	print("<h2>Mapped degree programs &amp; majors</h2>\n");
@@ -1759,7 +1764,7 @@ else
 	print("<div class=\"container\">\n");
 	if ( $programs ) {
 		print("<table class=\"table table-sm table-hover\">\n");
-		print("	<thead>\n");
+		print("	<thead class=\"bg-light sticky-top\">\n");
 		print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 		print("	</thead>\n");
 		print("	<tbody>\n");
@@ -1842,7 +1847,7 @@ else
 		print("<div class=\"container\">\n");
 		print("<table class=\"table table-sm table-hover caption-top\">\n");
 		print("	<caption class=\"h3\">Engineering</caption>\n");
-		print("	<thead>\n");
+		print("	<thead class=\"bg-light sticky-top\">\n");
 		print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 		print("	</thead>\n");
 		print("	<tbody>\n");
@@ -1876,7 +1881,7 @@ else
 		print("<div class=\"container\">\n");
 		print("<table class=\"table table-sm table-hover caption-top\">\n");
 		print("	<caption class=\"h3\">Computing</caption>\n");
-		print("	<thead>\n");
+		print("	<thead class=\"bg-light sticky-top\">\n");
 		print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 		print("	</thead>\n");
 		print("	<tbody>\n");
@@ -1910,7 +1915,7 @@ else
 		print("<div class=\"container\">\n");
 		print("<table class=\"table table-sm table-hover caption-top\">\n");
 		print("	<caption class=\"h3\">Other</caption>\n");
-		print("	<thead>\n");
+		print("	<thead class=\"bg-light sticky-top\">\n");
 		print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 		print("	</thead>\n");
 		print("	<tbody>\n");
@@ -1949,6 +1954,7 @@ else
 	{
 		print("<section>\n");
 		print("<h2>Mapped non-engineering degree programs (for <abbr title=\"Flexible Double Degree\">FDD</abbr>s)</h2>\n");
+		print("<div class=\"alert alert-warning\">Note: not all of these programs are allowable FDD combinations with the ANU engineering degrees. Please see the specific engineering degree rules on P&amp;C for allowable combinations, or consult with CECS Student Services.</div>\n");
 		$fdds = listAllPrograms();
 		if ( $fdds )
 		{
@@ -1966,7 +1972,7 @@ else
 			
 			print("<div class=\"container\">\n");
 			print("<table class=\"table table-sm table-hover caption-top\">\n");
-			print("	<thead>\n");
+			print("	<thead class=\"bg-light sticky-top\">\n");
 			print("		<tr><th class=\"small col-2\">code</th><th>name</th><th class=\"text-center col-1\">eng. years</th><th class=\"text-center col-1\">P&amp;C</th></tr>\n");
 			print("	</thead>\n");
 			print("	<tbody>\n");
