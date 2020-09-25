@@ -1,0 +1,7 @@
+<IfModule mod_rewrite.c>
+ RewriteEngine On
+ RewriteRule ^/?B([A-Z]{4})-CORE.html$ /?program=A$1 [R=301,L]
+ RewriteRule ^/?([A-Z]{5})-CORE.html$ /?program=$1 [R=301,L]
+ RewriteRule ^/?([A-Z]{4,5})-MAJ.html$ /?major=$1-MAJ [R=301,L]
+ RewriteRule ^/?([A-Z]{4}[0-9]{4}).html$ /?course=$1 [R=301,L]
+</IfModule>
