@@ -444,6 +444,51 @@ function listAssessmentTypes()
 	return $types;
 }
 
+function createLink($display = "pretty", $prefix = "/", $base = "index.php", $q1 = array(), $q2 = array())
+{
+	$url = "";
+	switch ($display)
+	{
+		case "pretty":
+			$url = $prefix;
+			if ( substr($base, -4) == ".php" )
+			{
+				$base = substr($base, 0, -4);
+			}
+			$url .= $base;
+			if ( $q1 & count($q1) == 2 )
+			{
+				$url .= "/";
+				if ( $q1[0] == "fdd" )
+				{
+					$url .= "FDD-";
+				}
+				$url .= $q1[1];
+				if ( $q2 && count($q1) == 2 )
+				{
+					$url .= "/" . $q2[1];
+				}
+			}
+			break;
+		case "php":
+			$url = $prefix;
+			if ( $base != "index.php" )
+			{
+				$url .= $base;
+			}
+			if ( $q1 && count($q1) == 2 )
+			{
+				$url .= "?" . $q1[0] . "=" . $q1[1];
+				if ( $q2 && count($q2) == 2)
+				{
+					$url .= "&amp;" . $q2[0] . "=" . $q2[1];
+				}
+			}
+			break;
+	}
+	return $url;
+}
+
 function generateLinkToProgramsAndCourses($code)
 {
 	$urlPrefix = "https://programsandcourses.anu.edu.au";
