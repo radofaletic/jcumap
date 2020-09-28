@@ -12,9 +12,12 @@ if ( isset($_GET['accreditationDisplay']) || ( isset($displayInformationForAccre
 {
 	$accreditationDisplayScript = 'accreditation.php';
 }
+$urlDisplayType = "pretty";//"php"
+$urlPrefix = "/";
+$urlScript = ( $accreditationDisplayScript ) ? $accreditationDisplayScript : "index.php";
+
 
 	
-
 
 
 
@@ -169,8 +172,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 	print("</head>\n");
 	
 	print("<body class=\"container\">\n");
-	print("<header><h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"./" . $accreditationDisplayScript . "\">CECS Professional Skills Mapping</a></h1></header>\n");
-	
+	print("<header><h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript) . "\">CECS Professional Skills Mapping</a></h1></header>\n");
 	if ( $code && $type && $name )
 	{
 		switch ($type)
@@ -633,7 +635,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						$program = getDefinition($program);
 						if ( $program )
 						{
-							print("				<li><a href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "\">" . htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "</a></li>\n");
+							print("				<li><a href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code)) . "\">" . htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "</a></li>\n");
 						}
 					}
 					print("			</ul></td></tr>\n");
@@ -651,7 +653,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								print("				<li>");
 								if ( $course->name )
 								{
-									print("<a href=\"./" . $accreditationDisplayScript . "?course=" . $course->code . "\">" . $course->code . " — <span class=\"font-italic\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</span></a>");
+									print("<a href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("course", $course->code)) . "\">" . $course->code . " — <span class=\"font-italic\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</span></a>");
 								}
 								else
 								{
@@ -673,7 +675,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 							print("				<li>");
 							if ( $course->name )
 							{
-								print("<a href=\"./" . $accreditationDisplayScript . "?course=" . $course->code . "\">" . $course->code . " — <span class=\"font-italic\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</span></a>");
+								print("<a href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("course", $course->code)) . "\">" . $course->code . " — <span class=\"font-italic\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</span></a>");
 							}
 							else
 							{
@@ -1058,7 +1060,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						$major = getDefinition($major);
 						if ( $major )
 						{
-							print("				<li><a href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "&amp;major=" . $major->code . "\">" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . "</a></li>\n");
+							print("				<li><a href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code), array("major", $major->code)) . "\">" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . "</a></li>\n");
 						}
 					}
 					print("			</ul></td></tr>\n");
@@ -1081,7 +1083,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						print("				<li>");
 						if ( $course->name )
 						{
-							print("<a href=\"./" . $accreditationDisplayScript . "?course=" . $course->code . "\">" . $course->code . " — <span class=\"font-italic\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</span></a>");
+							print("<a href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("course", $course->code)) . "\">" . $course->code . " — <span class=\"font-italic\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</span></a>");
 						}
 						else
 						{
@@ -1725,7 +1727,7 @@ else
 	print("</head>\n");
 	
 	print("<body class=\"container\">\n");
-	print("<h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"./" . $accreditationDisplayScript . "\">CECS Professional Skills Mapping</a></h1>\n");
+	print("<h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript) . "\">CECS Professional Skills Mapping</a></h1>\n");
 	print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: information provided here is indicative only. For full and current information view the official pages on P&amp;C.</div>\n");
 	
 	print("<section>\n");
@@ -1776,9 +1778,9 @@ else
 			print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($program->code) . "\">" . biBoxArrowUpRight() . "</a>");
 			print("</td></tr>\n");
 			print("		<tr><td class=\"small position-relative\">");
-			print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "\">" . $program->code . "</a>");
+			print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code)) . "\">" . $program->code . "</a>");
 			print("</td><td class=\"position-relative\">");
-			print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "\">");
+			print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code)) . "\">");
 			if ( $program->majors )
 			{
 				print("<span class=\"text-decoration-underline\">engineering core</span>: ");
@@ -1796,9 +1798,9 @@ else
 						if ( $major->code == $majorCode )
 						{
 							print("		<tr><td class=\"small position-relative\">");
-							print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "&amp;major=" . $major->code . "\">" . $major->code . "</a>");
+							print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code), array("major", $major->code)) . "\">" . $major->code . "</a>");
 							print("</td><td class=\"position-relative\">");
-							print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?program=" . $program->code . "&amp;major=" . $major->code . "\"><span class=\"text-decoration-underline\">major</span>: " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . "</a>");
+							print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code), array("major", $major->code)) . "\"><span class=\"text-decoration-underline\">major</span>: " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . "</a>");
 							print("</td><td class=\"text-center position-relative\">");
 							print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($major->code) . "\">" . biBoxArrowUpRight() . "</a>");
 							print("</td></tr>\n");
@@ -1857,7 +1859,7 @@ else
 			print("		<tr><td class=\"small position-relative\">");
 			if ( $course->name )
 			{
-				print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?course=" . $code . "\">" . $code . "</a>");
+				print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("course", $code)) . "\">" . $code . "</a>");
 			}
 			else
 			{
@@ -1866,7 +1868,7 @@ else
 			print("</td><td class=\"position-relative\">");
 			if ( $course->name )
 			{
-				print("<a class=\"stretched-link font-italic\" href=\"./" . $accreditationDisplayScript . "?course=" . $code . "\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</a>");
+				print("<a class=\"stretched-link font-italic\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("course", $code)) . "\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</a>");
 			}
 			print("</td><td class=\"text-center position-relative\">");
 			print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . biBoxArrowUpRight() . "</a>");
@@ -1891,7 +1893,7 @@ else
 			print("		<tr><td class=\"small position-relative\">");
 			if ( $course->name )
 			{
-				print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?course=" . $code . "\">" . $code . "</a>");
+				print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("course", $code)) . "\">" . $code . "</a>");
 			}
 			else
 			{
@@ -1900,7 +1902,7 @@ else
 			print("</td><td class=\"position-relative\">");
 			if ( $course->name )
 			{
-				print("<a class=\"stretched-link font-italic\" href=\"./" . $accreditationDisplayScript . "?course=" . $code . "\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</a>");
+				print("<a class=\"stretched-link font-italic\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("course", $code)) . "\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</a>");
 			}
 			print("</td><td class=\"text-center position-relative\">");
 			print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . biBoxArrowUpRight() . "</a>");
@@ -1925,7 +1927,7 @@ else
 			print("		<tr><td class=\"small position-relative\">");
 			if ( $course->name )
 			{
-				print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?course=" . $code . "\">" . $code . "</a>");
+				print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("course", $code)) . "\">" . $code . "</a>");
 			}
 			else
 			{
@@ -1934,7 +1936,7 @@ else
 			print("</td><td class=\"position-relative\">");
 			if ( $course->name )
 			{
-				print("<a class=\"stretched-link font-italic\" href=\"./" . $accreditationDisplayScript . "?course=" . $code . "\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</a>");
+				print("<a class=\"stretched-link font-italic\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("course", $code)) . "\">" . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . "</a>");
 			}
 			print("</td><td class=\"text-center position-relative\">");
 			print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . biBoxArrowUpRight() . "</a>");
@@ -1980,9 +1982,9 @@ else
 			{
 				$fdd = getFDD($code, 'full');
 				print("		<tr><td class=\"small position-relative\">");
-				print("<a class=\"stretched-link\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . $code . "</a>");
+				print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("fdd", $code)) . "\">" . $code . "</a>");
 				print("</td><td class=\"position-relative\">");
-				print("<a class=\"stretched-link font-italic\" href=\"./" . $accreditationDisplayScript . "?fdd=" . $code . "\">" . htmlspecialchars($name, ENT_QUOTES|ENT_HTML5) . "</a>");
+				print("<a class=\"stretched-link font-italic\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("fdd", $code)) . "\">" . htmlspecialchars($name, ENT_QUOTES|ENT_HTML5) . "</a>");
 				print("</td><td class=\"text-center\">" . number_format($fdd->units / 48, 1) . "</th><td class=\"text-center position-relative\">");
 				print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($code) . "\">" . biBoxArrowUpRight() . "</a>");
 				print("</td></tr>\n");
