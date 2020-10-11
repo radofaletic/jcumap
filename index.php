@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 
 require_once("./jcumap-output-processor.php");
 
-$accreditationDisplayScript = '';
+$accreditationDisplayScript = "";
 if ( isset($_GET['accreditationDisplay']) || ( isset($displayInformationForAccreditation) && $displayInformationForAccreditation) )
 {
 	$accreditationDisplayScript = 'accreditation.php';
@@ -166,7 +166,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 	print("	<meta name=\"keywords\" content=\"CECS,EA,Engineers Australia,engineering,mapping\">\n");
 	print("	<meta name=\"format-detection\" content=\"telephone=no\">\n\n");
 		
-	print("	<link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css\" integrity=\"sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I\" crossorigin=\"anonymous\">\n\n");
+	print("	<link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css\" integrity=\"sha384-DhY6onE6f3zzKbjUPRc2hOzGAdEf4/Dz+WJwBvEYL/lkkIsI3ihufq9hk9K4lVoK\" crossorigin=\"anonymous\">\n\n");
 		
 	print("	<title>" . $shortname . " :: Professional Skills Mapping :: CECS :: ANU</title>\n");
 	print("</head>\n");
@@ -198,6 +198,19 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("	<tbody>\n");
 				print("		<tr><th>code: </th><td>" . $course->code . "</td></tr>\n");
 				print("		<tr><th>name: </th><td class=\"font-italic\">" . $course->name . "</td></tr>\n");
+				if ( $accreditationDisplayScript )
+				{
+					print("		<tr><th><i>JCUMap</i> files: </th><td><ul class=\"m-0\">");
+					if ( file_exists("courses/" . $code . ".xml") )
+					{
+						print("<li><a href=\"" . $urlPrefix . "courses/" . $code . ".xml\">" . $code . ".xml</a></li>");
+					}
+					if ( file_exists("courses/" . $code . "MappingResult.xml") )
+					{
+						print("<li><a href=\"" . $urlPrefix . "courses/" . $code . "MappingResult.xml\">" . $code . "MappingResult.xml</a></li>");
+					}
+					print("</ul></td></tr>\n");
+				}				
 				if ( isset($course->units) )
 				{
 					print("		<tr><th>unit value: </th><td>" . number_format($course->units, 0) . "</td></tr>\n");
@@ -1438,6 +1451,16 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("<div class=\"container\">\n");
 				print("<table class=\"table\">\n");
 				print("	<tbody>\n");
+				print("		<tr><th><i>JCUMap</i> files: </th><td><ul class=\"m-0\">");
+				if ( file_exists("programs/" . $code . ".xml") )
+				{
+					print("<li><a href=\"" . $urlPrefix . "programs/" . $code . ".xml\">" . $code . ".xml</a></li>");
+				}
+				if ( file_exists("programs/" . $code . "MappingResult.xml") )
+				{
+					print("<li><a href=\"" . $urlPrefix . "programs/" . $code . "MappingResult.xml\">" . $code . "MappingResult.xml</a></li>");
+				}
+				print("</ul></td></tr>\n");
 				if ( isset($fdd->description) && $fdd->description )
 				{
 					print("		<tr><th>description: </th><td class=\"small\">" . str_replace("\n", "<br>\n", $fdd->description) . "</td></tr>\n");
@@ -1694,7 +1717,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 		}
 		print("</p></div>\n</section>\n");
 	}
-	print("<script src=\"https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.bundle.min.js\" integrity=\"sha384-DBjhmceckmzwrnMMrjI7BvG2FmRuxQVaTfFYHgfnrdfqMhxKt445b7j3KBQLolRl\" crossorigin=\"anonymous\"></script>\n");
+	print("<script src=\"https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/js/bootstrap.bundle.min.js\" integrity=\"sha384-BOsAfwzjNJHrJ8cZidOg56tcQWfp6y72vEJ8xQ9w6Quywb24iOsW913URv1IS4GD\" crossorigin=\"anonymous\"></script>\n");
 	print("<script>var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle=\"tooltip\"]')); var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); })</script>\n");
 	print("</body>\n");
 }
@@ -1721,7 +1744,7 @@ else
 	print("	<meta name=\"keywords\" content=\"CECS,EA,Engineers Australia,engineering,mapping\">\n");
 	print("	<meta name=\"format-detection\" content=\"telephone=no\">\n\n");
 		
-	print("	<link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css\" integrity=\"sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I\" crossorigin=\"anonymous\">\n\n");
+	print("	<link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css\" integrity=\"sha384-DhY6onE6f3zzKbjUPRc2hOzGAdEf4/Dz+WJwBvEYL/lkkIsI3ihufq9hk9K4lVoK\" crossorigin=\"anonymous\">\n\n");
 		
 	print("	<title>Professional Skills Mapping :: CECS :: ANU</title>\n");
 	print("</head>\n");
@@ -1730,7 +1753,7 @@ else
 	print("<h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript) . "\">CECS Professional Skills Mapping</a></h1>\n");
 	print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: information provided here is indicative only. For full and current information view the official pages on P&amp;C.</div>\n");
 	
-	print("<section>\n");
+	print("<section id=\"programs\">\n");
 	print("<h2>Mapped degree programs &amp; majors</h2>\n");
 	
 	// get the programs
@@ -1817,7 +1840,7 @@ else
 	print("</div>\n");
 	print("</section>\n");
 	
-	print("<section>\n");
+	print("<section id=\"courses\">\n");
 	print("<h2>Mapped courses</h2>\n");
 	$courses = listAllCourseCodes();
 	$engnCourses = array();
@@ -1846,7 +1869,7 @@ else
 	}
 	if ( $engnCourses )
 	{
-		print("<div class=\"container\">\n");
+		print("<div class=\"container\" id=\"ENGN\">\n");
 		print("<table class=\"table table-sm table-hover caption-top\">\n");
 		print("	<caption class=\"h3\">Engineering</caption>\n");
 		print("	<thead class=\"bg-light sticky-top\">\n");
@@ -1880,7 +1903,7 @@ else
 	}
 	if ( $compCourses )
 	{
-		print("<div class=\"container\">\n");
+		print("<div class=\"container\" id=\"COMP\">\n");
 		print("<table class=\"table table-sm table-hover caption-top\">\n");
 		print("	<caption class=\"h3\">Computing</caption>\n");
 		print("	<thead class=\"bg-light sticky-top\">\n");
@@ -1914,7 +1937,7 @@ else
 	}
 	if ( $otherCourses )
 	{
-		print("<div class=\"container\">\n");
+		print("<div class=\"container\" id=\"other\">\n");
 		print("<table class=\"table table-sm table-hover caption-top\">\n");
 		print("	<caption class=\"h3\">Other</caption>\n");
 		print("	<thead class=\"bg-light sticky-top\">\n");
@@ -1954,7 +1977,7 @@ else
 	
 	if ( $accreditationDisplayScript )
 	{
-		print("<section>\n");
+		print("<section id=\"fdd\">\n");
 		print("<h2>Mapped non-engineering degree programs (for <abbr title=\"Flexible Double Degree\">FDD</abbr>s)</h2>\n");
 		print("<div class=\"alert alert-warning\">Note: not all of these programs are allowable FDD combinations with the ANU engineering degrees. Please see the specific engineering degree rules on P&amp;C for allowable combinations, or consult with CECS Student Services.</div>\n");
 		$fdds = listAllPrograms();
