@@ -451,14 +451,16 @@ function createLink($display = "pretty", $prefix = "/", $base = "index.php", $q1
 	{
 		case "pretty":
 			$url = $prefix;
-			if ( substr($base, -4) == ".php" )
+			if ( $base != "index.php" &&  substr($base, -4) == ".php" )
 			{
-				$base = substr($base, 0, -4);
+				$url .= substr($base, 0, -4);
 			}
-			$url .= $base;
 			if ( $q1 & count($q1) == 2 )
 			{
-				$url .= "/";
+				if ( substr($url, -1) != "/" )
+				{
+					$url .= "/";
+				}
 				if ( $q1[0] == "fdd" )
 				{
 					$url .= "FDD-";
