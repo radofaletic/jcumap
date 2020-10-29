@@ -42,6 +42,7 @@ if ( isset($_GET['program']) && strlen($_GET['program']) )
 	}
 	$codeProgram = $tmpCode;
 }
+$programDefinitions = getDefinition("programs");
 if ( isset($_GET['major']) && strlen($_GET['major']) )
 {
 	$tmpCode = strtoupper(trim($_GET['major']));
@@ -63,7 +64,7 @@ if ( isset($_GET['course']) && strlen($_GET['course']) )
 if ( $accreditationDisplayScript && isset($_GET['fdd']) && strlen($_GET['fdd']) )
 {
 	$tmpCode = strtoupper(trim($_GET['fdd']));
-	if ( 3 <= strlen($tmpCode) && ctype_upper($tmpCode) )
+	if ( 3 <= strlen($tmpCode) && ctype_upper($tmpCode) && !in_array($tmpCode, $programDefinitions) )
 	{
 		$_GET['code'] = $tmpCode;
 	}
@@ -117,11 +118,44 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				$shortname = $name;
 				if ( $codeProgram )
 				{
-					$program = getDefinition($codeProgram);
-					if ( $program && isset($program->name) )
+					$program = getProgram($codeProgram, 'full');
+					if ( $program && $program->name )
 					{
-						$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "  (major in " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
-						$shortname = htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . " (" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
+						$programDefinition = getDefinition($codeProgram);
+						if ( $programDefinition && isset($programDefinition->name) )
+						{
+							$program->courses = $programDefinition->courses;
+							$program->coursesForAggregating = array();
+							if ( isset($programDefinition->coursesForAggregating) )
+							{
+								$program->coursesForAggregating = $programDefinition->coursesForAggregating;
+							}
+							else
+							{
+								$program->coursesForAggregating = $programDefinition->courses;
+							}
+							$program->majors = $programDefinition->majors;
+							$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5);
+							$shortname = htmlspecialchars($programDefinition->program, ENT_QUOTES|ENT_HTML5);
+							if ( isset($program->majors) && $program->majors )
+							{
+								$name .= " core";
+								$shortname .= " (core)";
+							}
+						}
+					}
+					else
+					{
+						$program = getDefinition($codeProgram);
+						if ( $program && isset($program->name) )
+						{
+							if ( !isset($program->coursesForAggregating) )
+							{
+								$program->coursesForAggregating = $program->courses;
+							}
+							$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "  (major in " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
+							$shortname = htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . " (" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
+						}
 					}
 				}
 				if ( !$name )
@@ -132,15 +166,48 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 			}
 			break;
 		case 'program':
-			$program = getDefinition($code);
-			if ( $program && isset($program->name) )
+			$program = getProgram($code, 'full');
+			if ( $program && $program->name )
 			{
-				$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5);
-				$shortname = htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5);
-				if ( isset($program->majors) && $program->majors )
+				$programDefinition = getDefinition($code);
+				if ( $programDefinition && isset($programDefinition->name) )
 				{
-					$name .= " core";
-					$shortname .= " (core)";
+					$program->courses = $programDefinition->courses;
+					$program->coursesForAggregating = array();
+					if ( isset($programDefinition->coursesForAggregating) )
+					{
+						$program->coursesForAggregating = $programDefinition->coursesForAggregating;
+					}
+					else
+					{
+						$program->coursesForAggregating = $programDefinition->courses;
+					}
+					$program->majors = $programDefinition->majors;
+					$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5);
+					$shortname = htmlspecialchars($programDefinition->program, ENT_QUOTES|ENT_HTML5);
+					if ( isset($program->majors) && $program->majors )
+					{
+						$name .= " core";
+						$shortname .= " (core)";
+					}
+				}
+			}
+			else
+			{
+				$program = getDefinition($code);
+				if ( $program && isset($program->name) )
+				{
+					if ( !isset($program->coursesForAggregating) )
+					{
+						$program->coursesForAggregating = $program->courses;
+					}
+					$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5);
+					$shortname = htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5);
+					if ( isset($program->majors) && $program->majors )
+					{
+						$name .= " core";
+						$shortname .= " (core)";
+					}
 				}
 			}
 			break;
@@ -217,7 +284,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				}
 				if ( isset($course->description) && $course->description )
 				{
-					print("		<tr><th>description: </th><td class=\"small\">" . str_replace("\n", "<br>\n", $course->description) . "</td></tr>\n");
+					print("		<tr><th>description: </th><td class=\"small\">" . str_replace("\n", "<br> ", str_replace("\r\n", "<br> ", trim($course->description))) . "</td></tr>\n");
 				}
 				print("		<tr><th>P&amp;C: </th><td class=\"position-relative\"><a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($course->code) . "\">" . generateLinkToProgramsAndCourses($course->code) . "</a></td></tr>\n");
 				if ( isset($course->learningOutcomes) && $course->learningOutcomes )
@@ -619,19 +686,37 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				{
 					print("		<tr><th>major: </th><td class=\"font-italic\">" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . " major</td></tr>\n");
 				}
+				if ($accreditationDisplayScript)
+				{
+					print("		<tr><th><i>JCUMap</i> files: </th><td><ul class=\"m-0\">");
+					if ( file_exists("majors/" . $major->code . ".xml") )
+					{
+						print("<li><a href=\"" . $urlPrefix . "majors/" . $major->code . ".xml\">" . $major->code . ".xml</a></li>");
+					}
+					if ( file_exists("majors/" . $major->code . "MappingResult.xml") )
+					{
+						print("<li><a href=\"" . $urlPrefix . "majors/" . $major->code . "MappingResult.xml\">" . $major->code . "MappingResult.xml</a></li>");
+					}
+					if ( file_exists("programs/" . $program->code . ".xml") )
+					{
+						print("<li><a href=\"" . $urlPrefix . "programs/" . $program->code . ".xml\">" . $program->code . ".xml</a></li>");
+					}
+					if ( file_exists("programs/" . $program->code . "MappingResult.xml") )
+					{
+						print("<li><a href=\"" . $urlPrefix . "programs/" . $program->code . "MappingResult.xml\">" . $program->code . "MappingResult.xml</a></li>");
+					}
+					print("</ul></td></tr>\n");
+				}
+				
 				if ( ( $program && isset($program->description) && $program->description ) || ( isset($major->description) && $major->description ) )
 				{
 					print("		<tr><th>description: </th><td class=\"small\">");
 					if ( $program && isset($program->description) && $program->description )
 					{
-						print(htmlspecialchars($program->description, ENT_QUOTES|ENT_HTML5) . "<br><br> ");
+						print(str_replace("\n", "<br> ", str_replace("\r\n", "<br> ", trim($program->description))) . "<br><br> ");
 					}
-					print(htmlspecialchars($major->description, ENT_QUOTES|ENT_HTML5));
+					print(htmlspecialchars(trim($major->description), ENT_QUOTES|ENT_HTML5));
 					print("</td></tr>\n");
-				}
-				if ( isset($major->school) && $major->school )
-				{
-					print("		<tr><th>school: </th><td>" . htmlspecialchars($major->school, ENT_QUOTES|ENT_HTML5) . "</td></tr>\n");
 				}
 				print("		<tr><th>P&amp;C: </th><td>");
 				if ( $program && isset($program->code) && $program->code )
@@ -672,12 +757,21 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								{
 									print("<a href=\"" . generateLinkToProgramsAndCourses($course->code) . "\">" . $course->code . "</a>");
 								}
+								if ( $accreditationDisplayScript && isset($program->coursesForAggregating) && in_array($course->code, $program->coursesForAggregating) )
+								{
+									print("<sup class=\"text-danger\">*</sup>");
+								}
 								print("</li>\n");
 							}
 							unset($program->courses[$courseKey]);
 							$program->courses[$course->code] = $course;
 						}
-						print("			</ul></td></tr>\n");
+						print("			</ul>");
+						if ( $accreditationDisplayScript )
+						{
+							print("<span class=\"small\"><sup class=\"text-danger\">*</sup> These courses are used to create the aggregate summaries below.</span>");
+						}
+						print("</td></tr>\n");
 					}
 					print("		<tr><th>courses in major: </th><td class=\"small\" style=\"column-count: 2;\"><ul>\n");
 					foreach ($major->courses as $courseKey => $course)
@@ -694,6 +788,10 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 							{
 								print("<a href=\"" . generateLinkToProgramsAndCourses($course->code) . "\">" . $course->code . "</a>");
 							}
+							if ( $accreditationDisplayScript )
+							{
+								print("<sup class=\"text-danger\">*</sup>");
+							}
 							print("</li>\n");
 						}
 						unset($major->courses[$courseKey]);
@@ -704,7 +802,10 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					{
 						foreach ($program->courses as $courseKey => $course)
 						{
-							$major->courses[$courseKey] = $course;
+							if ( !isset($program->coursesForAggregating) || in_array($course->code, $program->coursesForAggregating) )
+							{
+								$major->courses[$courseKey] = $course;
+							}
 						}
 					}
 					// display aggregate assessment contributions
@@ -794,6 +895,14 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						}
 					}
 				}
+				$bigProgramCompetencies = array();
+				if ( isset($program->competencies) && $program->competencies )
+				{
+					foreach ($program->competencies as $competencyKey => $competency)
+					{
+						$bigProgramCompetencies[$competencyKey] = $competency;
+					}
+				}
 								
 				// display chart of progressive development towards EA competencies
 				$majorMappingData = array();
@@ -818,6 +927,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						}
 					}
 				}
+				
 				if ( $majorMappingData )
 				{
 					print("<section>\n");
@@ -941,6 +1051,10 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				{
 					print("<section>\n");
 					print("<h2>" . $majorCompetencyName . " — summary</h2>\n");
+					if ( $accreditationDisplayScript && isset($bigProgramCompetencies) && $bigProgramCompetencies )
+					{
+						print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: the red ticks (<span class=\"text-danger\">✓</span>) represent the expectation of attainment of each competency as depicted via the program learning outcomes, and the green ticks (<span class=\"text-success\">✓</span>) represent attainment of each competency via aggregating from the courses.</div>\n");
+					}
 					print("<div class=\"container\">\n");
 					print("<table class=\"table table-sm table-hover\">\n");
 					print("	<tbody>\n");
@@ -950,6 +1064,22 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						{
 							case 1:
 								print("		<tr class=\"table-secondary\">");
+								if ( $accreditationDisplayScript && $bigProgramCompetencies)
+								{
+									if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
+									{
+										print("<th class=\"text-center text-danger align-middle\">");
+										for ($i=0; $i<$bigProgramCompetencies[$competencyKey]->competencyLevel; $i++)
+										{
+											print("✓");
+										}
+										print("</th>");
+									}
+									else
+									{
+										print("<th></th>");
+									}
+								}
 								if ( $competency->competencyLevel > 0 )
 								{
 									print("<th class=\"text-center text-success align-middle\">");
@@ -975,6 +1105,22 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								break;
 							case 2:
 								print("		<tr class=\"small\">");
+								if ( $accreditationDisplayScript && $bigProgramCompetencies)
+								{
+									if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
+									{
+										print("<td class=\"text-center text-danger align-middle\">");
+										for ($i=0; $i<$bigProgramCompetencies[$competencyKey]->competencyLevel; $i++)
+										{
+											print("✓");
+										}
+										print("</td>");
+									}
+									else
+									{
+										print("<td></td>");
+									}
+								}
 								if ( $competency->competencyLevel > 0 )
 								{
 									print("<td class=\"text-center text-success align-middle\">");
@@ -999,9 +1145,25 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								print("</tr>\n");
 								break;
 							case 3:
-								if ($accreditationDisplayScript)
+								if ( $accreditationDisplayScript && false )
 								{
 									print("		<tr class=\"small\">");
+									if ( $bigProgramCompetencies)
+									{
+										if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
+										{
+											print("<td class=\"text-center text-danger align-middle\">");
+											for ($i=0; $i<$bigProgramCompetencies[$competencyKey]->competencyLevel; $i++)
+											{
+												print("✓");
+											}
+											print("</td>");
+										}
+										else
+										{
+											print("<td></td>");
+										}
+									}
 									if ( $competency->competencyLevel > 0 )
 									{
 										print("<td class=\"text-center text-success align-middle\">");
@@ -1056,13 +1218,22 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("<table class=\"table\">\n");
 				print("	<tbody>\n");
 				print("		<tr><th>program: </th><td class=\"font-italic\">" . htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "</td></tr>\n");
+				if ($accreditationDisplayScript)
+				{
+					print("		<tr><th><i>JCUMap</i> files: </th><td><ul class=\"m-0\">");
+					if ( file_exists("programs/" . $code . ".xml") )
+					{
+						print("<li><a href=\"" . $urlPrefix . "programs/" . $code . ".xml\">" . $code . ".xml</a></li>");
+					}
+					if ( file_exists("programs/" . $code . "MappingResult.xml") )
+					{
+						print("<li><a href=\"" . $urlPrefix . "programs/" . $code . "MappingResult.xml\">" . $code . "MappingResult.xml</a></li>");
+					}
+					print("</ul></td></tr>\n");
+				}
 				if ( isset($program->description) && $program->description )
 				{
-					print("		<tr><th>description: </th><td class=\"small\">" . htmlspecialchars($program->description, ENT_QUOTES|ENT_HTML5) . "</td></tr>\n");
-				}
-				if ( isset($program->school) && $program->school )
-				{
-					print("		<tr><th>school: </th><td>" . htmlspecialchars($program->school, ENT_QUOTES|ENT_HTML5) . "</td></tr>\n");
+					print("		<tr><th>description: </th><td class=\"small\">" . str_replace("\n", "<br> ", str_replace("\r\n", "<br> ", trim($program->description))) . "</td></tr>\n");
 				}
 				print("		<tr><th>P&amp;C: </th><td class=\"position-relative\"><a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($program->code) . "\">" . generateLinkToProgramsAndCourses($program->code) . "</a></td></tr>\n");
 				if ( isset($program->majors) && $program->majors )
@@ -1102,10 +1273,19 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						{
 							print("<a href=\"" . generateLinkToProgramsAndCourses($course->code) . "\">" . $course->code . "</a>");
 						}
+						if ( $accreditationDisplayScript && ( !isset($program->coursesForAggregating) || in_array($course->code, $program->coursesForAggregating) ) )
+						{
+							print("<sup class=\"text-danger\">*</sup>");
+						}
 						print("</li>\n");
 						$program->courses[$courseKey] = $course;
 					}
-					print("			</ul></td></tr>\n");
+					print("			</ul>");
+					if ( $accreditationDisplayScript )
+					{
+						print("<span class=\"small\"><sup class=\"text-danger\">*</sup> These courses are used to create the aggregate summaries below.</span>");
+					}
+					print("</td></tr>\n");
 				}
 				// display aggregate assessment contributions
 				if ( $accreditationDisplayScript )
@@ -1115,18 +1295,21 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					$assessmentCategorisationSummary = array();
 					foreach ($program->courses as $courseKey => $course)
 					{
-						if ( isset($course->assessmentCategorisationSummary) && $course->assessmentCategorisationSummary )
+						if ( !isset($program->coursesForAggregating) || in_array($course->code, $program->coursesForAggregating) )
 						{
-							$assessmentTotals += array_sum($course->assessmentCategorisationSummary);
-							if ( !$assessmentCategorisationSummary )
+							if ( isset($course->assessmentCategorisationSummary) && $course->assessmentCategorisationSummary )
 							{
-								$assessmentCategorisationSummary = $course->assessmentCategorisationSummary;
-							}
-							else
-							{
-								foreach ($course->assessmentCategorisationSummary as $assessmentKey => $assessmentValue)
+								$assessmentTotals += array_sum($course->assessmentCategorisationSummary);
+								if ( !$assessmentCategorisationSummary )
 								{
-									$assessmentCategorisationSummary[$assessmentKey] += $assessmentValue;
+									$assessmentCategorisationSummary = $course->assessmentCategorisationSummary;
+								}
+								else
+								{
+									foreach ($course->assessmentCategorisationSummary as $assessmentKey => $assessmentValue)
+									{
+										$assessmentCategorisationSummary[$assessmentKey] += $assessmentValue;
+									}
 								}
 							}
 						}
@@ -1171,26 +1354,37 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				$programCompetencyName = "";
 				foreach ($program->courses as $courseKey => $course)
 				{
-					if ( !$programCompetencyName && isset($course->competencyName) && $course->competencyName )
+					if ( !isset($program->coursesForAggregating) || in_array($course->code, $program->coursesForAggregating) )
 					{
-						$programCompetencyName = $course->competencyName;
-					}
-					if ( isset($course->competencies) && $course->competencies )
-					{
-						if ( !$programCompetencies )
+						if ( !$programCompetencyName && isset($course->competencyName) && $course->competencyName )
 						{
-							$programCompetencies = $course->competencies;
+							$programCompetencyName = $course->competencyName;
 						}
-						else
+						if ( isset($course->competencies) && $course->competencies )
 						{
-							foreach ($course->competencies as $competencyKey => $competency)
+							if ( !$programCompetencies )
 							{
-								if ($programCompetencies[$competencyKey]->competencyLevel < $competency->competencyLevel )
+								$programCompetencies = $course->competencies;
+							}
+							else
+							{
+								foreach ($course->competencies as $competencyKey => $competency)
 								{
-									$programCompetencies[$competencyKey]->competencyLevel = $competency->competencyLevel;
+									if ($programCompetencies[$competencyKey]->competencyLevel < $competency->competencyLevel )
+									{
+										$programCompetencies[$competencyKey]->competencyLevel = $competency->competencyLevel;
+									}
 								}
 							}
 						}
+					}
+				}
+				$bigProgramCompetencies = array();
+				if ( isset($program->competencies) && $program->competencies )
+				{
+					foreach ($program->competencies as $competencyKey => $competency)
+					{
+						$bigProgramCompetencies[$competencyKey] = $competency;
 					}
 				}
 								
@@ -1198,7 +1392,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				$programMappingData = array();
 				foreach ($program->courses as $courseKey => $course)
 				{
-					if ( isset($course->mappingData) && $course->mappingData )
+					if ( ( !isset($program->coursesForAggregating) || in_array($course->code, $program->coursesForAggregating) ) && isset($course->mappingData) && $course->mappingData )
 					{
 						$courseYear = 0 + substr($course->code, 4, 1);
 						if ( $courseYear > 4 )
@@ -1217,6 +1411,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						}
 					}
 				}
+				
 				if ( $programMappingData )
 				{
 					print("<section>\n");
@@ -1338,7 +1533,10 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				{
 					print("<section>\n");
 					print("<h2>" . $programCompetencyName . " — summary</h2>\n");
-					print("<div class=\"container\">\n");
+					if ( $accreditationDisplayScript && isset($bigProgramCompetencies) && $bigProgramCompetencies )
+					{
+						print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: the red ticks (<span class=\"text-danger\">✓</span>) represent the expectation of attainment of each competency as depicted via the program learning outcomes, and the green ticks (<span class=\"text-success\">✓</span>) represent attainment of each competency via aggregating from the courses.</div>\n");
+					}
 					print("<table class=\"table table-sm table-hover\">\n");
 					print("	<tbody>\n");
 					foreach ($programCompetencies as $competencyKey => $competency)
@@ -1347,6 +1545,22 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						{
 							case 1:
 								print("		<tr class=\"table-secondary\">");
+								if ( $accreditationDisplayScript && $bigProgramCompetencies)
+								{
+									if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
+									{
+										print("<th class=\"text-center text-danger align-middle\">");
+										for ($i=0; $i<$bigProgramCompetencies[$competencyKey]->competencyLevel; $i++)
+										{
+											print("✓");
+										}
+										print("</th>");
+									}
+									else
+									{
+										print("<th></th>");
+									}
+								}
 								if ( $competency->competencyLevel > 0 )
 								{
 									print("<th class=\"text-center text-success align-middle\">");
@@ -1372,6 +1586,22 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								break;
 							case 2:
 								print("		<tr class=\"small\">");
+								if ( $accreditationDisplayScript && $bigProgramCompetencies)
+								{
+									if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
+									{
+										print("<td class=\"text-center text-danger align-middle\">");
+										for ($i=0; $i<$bigProgramCompetencies[$competencyKey]->competencyLevel; $i++)
+										{
+											print("✓");
+										}
+										print("</td>");
+									}
+									else
+									{
+										print("<td></td>");
+									}
+								}
 								if ( $competency->competencyLevel > 0 )
 								{
 									print("<td class=\"text-center text-success align-middle\">");
@@ -1396,9 +1626,25 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								print("</tr>\n");
 								break;
 							case 3:
-								if ( $accreditationDisplayScript )
+								if ( $accreditationDisplayScript && false )
 								{
 									print("		<tr class=\"small\">");
+									if ( $bigProgramCompetencies)
+									{
+										if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
+										{
+											print("<td class=\"text-center text-danger align-middle\">");
+											for ($i=0; $i<$bigProgramCompetencies[$competencyKey]->competencyLevel; $i++)
+											{
+												print("✓");
+											}
+											print("</td>");
+										}
+										else
+										{
+											print("<td></td>");
+										}
+									}
 									if ( $competency->competencyLevel > 0 )
 									{
 										print("<td class=\"text-center text-success align-middle\">");
@@ -1463,7 +1709,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("</ul></td></tr>\n");
 				if ( isset($fdd->description) && $fdd->description )
 				{
-					print("		<tr><th>description: </th><td class=\"small\">" . str_replace("\n", "<br>\n", $fdd->description) . "</td></tr>\n");
+					print("		<tr><th>description: </th><td class=\"small\">" . str_replace("\n", "<br> ", str_replace("\r\n", "<br> ", trim($fdd->description))) . "</td></tr>\n");
 				}
 				print("		<tr><th>P&amp;C: </th><td class=\"position-relative\"><a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($fdd->code) . "\">" . generateLinkToProgramsAndCourses($fdd->code) . "</a></td></tr>\n");
 				if ( isset($fdd->learningOutcomes) && $fdd->learningOutcomes )
@@ -1758,7 +2004,6 @@ else
 	
 	// get the programs
 	$programs = array();
-	$programDefinitions = getDefinition("programs");
 	if (isset($programDefinitions) && count($programDefinitions))
 	{
 		foreach ($programDefinitions as $program)
@@ -1987,7 +2232,7 @@ else
 			foreach ($fdds as $code)
 			{
 				$fdd = getFDD($code, 'basic');
-				if ( !in_array($code, $programs) && $fdd->code == $code && $fdd->name )
+				if ( !in_array($code, $programDefinitions) && $fdd->code == $code && $fdd->name )
 				{
 					$fddPrograms[$code] = $fdd->name;
 				}
