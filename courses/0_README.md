@@ -8,3 +8,5 @@ For each course, there are two files, prefixed by the course code as depicted on
 2. The second file contains the *JCUMap* mapping result, as is produced by the software (e.g. `ENGN1211MappingResult.xml`)
 
 It is important that in the *JCUMap* software, you enter the actual course code, in uppercase. Other than this caveat, no additional attention is necessary.
+
+You can replace these files with updated versions as required. You may also add additional mappings not already listed here, and the website will automatically include it.
