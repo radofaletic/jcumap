@@ -697,11 +697,11 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					{
 						print("<li><a href=\"" . $urlPrefix . "majors/" . $major->code . "MappingResult.xml\">" . $major->code . "MappingResult.xml</a></li>");
 					}
-					if ( file_exists("programs/" . $program->code . ".xml") )
+					if ( $program && isset($program->code) && file_exists("programs/" . $program->code . ".xml") )
 					{
 						print("<li><a href=\"" . $urlPrefix . "programs/" . $program->code . ".xml\">" . $program->code . ".xml</a></li>");
 					}
-					if ( file_exists("programs/" . $program->code . "MappingResult.xml") )
+					if ( $program && isset($program->code) && file_exists("programs/" . $program->code . "MappingResult.xml") )
 					{
 						print("<li><a href=\"" . $urlPrefix . "programs/" . $program->code . "MappingResult.xml\">" . $program->code . "MappingResult.xml</a></li>");
 					}
@@ -802,7 +802,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					{
 						foreach ($program->courses as $courseKey => $course)
 						{
-							if ( !isset($program->coursesForAggregating) || in_array($course->code, $program->coursesForAggregating) )
+							if ( $course && isset($course->code) && (!isset($program->coursesForAggregating) || in_array($course->code, $program->coursesForAggregating) ) )
 							{
 								$major->courses[$courseKey] = $course;
 							}
