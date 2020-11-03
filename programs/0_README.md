@@ -1,10 +1,10 @@
-## XML files for degree programs
+## *JCUMap* XML files for degree programs
 
-This folder contains XML files, from the *JCUMap* Software Suite, that describe mappings for degree programs.
+This folder contains XML files, from the *JCUMap Software Suite*, that describe mappings for degree programs.
 
 For each degree program, there are two files, prefixed by the program code as depicted on the P&C website.
 
-1. The first file contains the *JCUMap* mapping, as inputed to the software (e.g. `BARTS.xml` for *Bachelor of Arts*)
+1. The first file contains the *JCUMap* mapping data, as inputed to the software (e.g. `BARTS.xml` for *Bachelor of Arts*)
 2. The second file contains the *JCUMap* mapping result, as is produced by the software (e.g. `BARTSMappingResult.xml`)
 
 It should be noted that the *JCUMap* software has numerous limitations that need to be manually rectified. The most important of these is that it only allows the user to indicate up to *12* units for a course. However, since we are concerned with *programs* here, and not *courses*, which typically have many more units that this, we need to take care.
