@@ -851,12 +851,14 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				// display chart of development level learning against each of the competencies
 				$majorCompetencies = array();
 				$majorCompetencyName = "";
+				$totalUnits = 0;	
 				foreach ($major->courses as $courseKey => $course)
 				{
 					if ( !$majorCompetencyName && isset($course->competencyName) && $course->competencyName )
 					{
 						$majorCompetencyName = $course->competencyName;
 					}
+					$totalUnits += $course->units;
 					if ( isset($course->competencies) && $course->competencies )
 					{
 						if ( !$majorCompetencies )
@@ -910,15 +912,23 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				$bigProgramMappingData = array();
 				if ( isset($program->mappingData) && $program->mappingData )
 				{
+					$bigScale = 1;
+					$majorUnits = 48;
+					if ( $program->code == "AENGI" || $program->code == "AENRD") {
+						$majorUnits -= 12;
+					}
+					if ( $totalUnits && $program->units && $totalUnits < ( $program->units + $majorUnits ) ) {
+						$bigScale = $totalUnits / ( $program->units + $majorUnits );
+					}
 					foreach ($program->mappingData as $competencyLabel => $DLs)
 					{
 						if ( !isset($bigProgramMappingData[$competencyLabel]) )
 						{
 							$bigProgramMappingData[$competencyLabel] = array(1 => 0.0, 2 => 0.0, 3 => 0.0);
 						}
-						$bigProgramMappingData[$competencyLabel][1] += $DLs[1];
-						$bigProgramMappingData[$competencyLabel][2] += $DLs[2];
-						$bigProgramMappingData[$competencyLabel][3] += $DLs[3];
+						$bigProgramMappingData[$competencyLabel][1] += $bigScale * $DLs[1];
+						$bigProgramMappingData[$competencyLabel][2] += $bigScale * $DLs[2];
+						$bigProgramMappingData[$competencyLabel][3] += $bigScale * $DLs[3];
 					}
 				}
 				
@@ -1331,10 +1341,12 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				// display chart of development level learning against each of the competencies
 				$programCompetencies = array();
 				$programCompetencyName = "";
+				$totalUnits = 0;
 				foreach ($program->courses as $courseKey => $course)
 				{
 					if ( !isset($program->coursesForAggregating) || in_array($course->code, $program->coursesForAggregating) )
 					{
+						$totalUnits += $course->units;
 						if ( !$programCompetencyName && isset($course->competencyName) && $course->competencyName )
 						{
 							$programCompetencyName = $course->competencyName;
@@ -1393,15 +1405,19 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				$bigProgramMappingData = array();
 				if ( isset($program->mappingData) && $program->mappingData )
 				{
+					$bigScale = 1;
+					if ( $totalUnits && $program->units && $totalUnits < $program->units ) {
+						$bigScale = $totalUnits / $program->units;
+					}
 					foreach ($program->mappingData as $competencyLabel => $DLs)
 					{
 						if ( !isset($bigProgramMappingData[$competencyLabel]) )
 						{
 							$bigProgramMappingData[$competencyLabel] = array(1 => 0.0, 2 => 0.0, 3 => 0.0);
 						}
-						$bigProgramMappingData[$competencyLabel][1] += $DLs[1];
-						$bigProgramMappingData[$competencyLabel][2] += $DLs[2];
-						$bigProgramMappingData[$competencyLabel][3] += $DLs[3];
+						$bigProgramMappingData[$competencyLabel][1] += $bigScale * $DLs[1];
+						$bigProgramMappingData[$competencyLabel][2] += $bigScale * $DLs[2];
+						$bigProgramMappingData[$competencyLabel][3] += $bigScale * $DLs[3];
 					}
 				}
 				
