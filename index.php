@@ -135,13 +135,8 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								$program->coursesForAggregating = $programDefinition->courses;
 							}
 							$program->majors = $programDefinition->majors;
-							$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5);
-							$shortname = htmlspecialchars($programDefinition->program, ENT_QUOTES|ENT_HTML5);
-							if ( isset($program->majors) && $program->majors )
-							{
-								$name .= " core";
-								$shortname .= " (core)";
-							}
+							$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5). "  (major in " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
+							$shortname = htmlspecialchars($programDefinition->program, ENT_QUOTES|ENT_HTML5). " (" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
 						}
 					}
 					else
@@ -574,27 +569,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					{
 						case 1:
 							print("		<tr class=\"table-secondary\">");
-							if ( $competency->competencyLevel > 0 )
-							{
-								print("<th class=\"text-center text-success align-middle\">");
-								if ( $accreditationDisplayScript )
-								{
-									for ($i=0; $i<$competency->competencyLevel; $i++)
-									{
-										print("✓");
-									}
-								}
-								else
-								{
-									print("✓");
-								}
-								print("</th>");
-							}
-							else
-							{
-								print("<th></th>");
-							}
-							print("<th colspan=\"2\">" . $competency->label . "</th><th colspan=\"2\">" . $competency->text . "</th>");
+							print("<th colspan=\"5\">" . $competency->label . " " . $competency->text . "</th>");
 							print("</tr>\n");
 							break;
 						case 2:
@@ -674,7 +649,12 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 			case 'major':
 				print("<section>\n");
 				print("<h2>" . $name . "</h2>\n");
-				print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: information provided here is indicative only. For full and current information about this major view the official page on P&amp;C.</div>\n");
+				print("<div class=\"alert alert-info font-italic\" role=\"alert\">Note: information provided here is indicative only. For full and current information about this major view the official page on P&amp;C.");
+				if ( !isset($program) || !$program || !isset($program->name) )
+				{
+					print("<br>\n This page depicts information about this major in a stand-alone fashion, i.e. not including the core degree it is a part of. To see the combined information of this major as part of a full degree, select one of the “<a class=\"alert-link\" href=\"#parentPrograms\">parent program(s)</a>” below.");
+				}
+				print("</div>\n");
 				print("<div class=\"container\">\n");
 				print("<table class=\"table\">\n");
 				print("	<tbody>\n");
@@ -727,13 +707,13 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("</td></tr>\n");
 				if ( !( $program && isset($program->name) ) && isset($major->programs) && $major->programs )
 				{
-					print("		<tr><th>parent program(s): </th><td class=\"small\" style=\"column-count: 2;\"><ul>\n");
+					print("		<tr id=\"parentPrograms\"><th>parent program(s): </th><td class=\"small\" style=\"column-count: 2;\"><ul>\n");
 					foreach ($major->programs as $program)
 					{
 						$program = getDefinition($program);
 						if ( $program )
 						{
-							print("				<li><a href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code)) . "\">" . htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "</a></li>\n");
+							print("				<li><a href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code), array("major", $major->code)) . "\">" . htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "</a></li>\n");
 						}
 					}
 					print("			</ul></td></tr>\n");
@@ -927,6 +907,20 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						}
 					}
 				}
+				$bigProgramMappingData = array();
+				if ( isset($program->mappingData) && $program->mappingData )
+				{
+					foreach ($program->mappingData as $competencyLabel => $DLs)
+					{
+						if ( !isset($bigProgramMappingData[$competencyLabel]) )
+						{
+							$bigProgramMappingData[$competencyLabel] = array(1 => 0.0, 2 => 0.0, 3 => 0.0);
+						}
+						$bigProgramMappingData[$competencyLabel][1] += $DLs[1];
+						$bigProgramMappingData[$competencyLabel][2] += $DLs[2];
+						$bigProgramMappingData[$competencyLabel][3] += $DLs[3];
+					}
+				}
 				
 				if ( $majorMappingData )
 				{
@@ -971,6 +965,13 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								$majorMappingData[$competencyLabel][$year][3] += $majorMappingData[$competencyLabel][$year-1][3];
 							}
 							$maxUnits = max($maxUnits, ceil(array_sum($majorMappingData[$competencyLabel][$year])));
+						}
+					}
+					if ( $accreditationDisplayScript && $bigProgramMappingData )
+					{
+						foreach ($bigProgramMappingData as $competencyLabel => $DLs)
+						{
+							$maxUnits = max($maxUnits, ceil(array_sum($bigProgramMappingData[$competencyLabel])));
 						}
 					}
 					print("<table class=\"table table-sm table-hover small\">\n");
@@ -1037,6 +1038,15 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								}
 								print("&nbsp;yr&nbsp;" . $year . "</div>\n");
 							}
+							if ( $accreditationDisplayScript && $bigProgramMappingData )
+							{
+								print("			<div class=\"progress bg-transparent\">");
+								$sumOfUnits = array_sum($bigProgramMappingData[$competency->label]);
+								$mappingPercentage = 100 * $sumOfUnits / $maxUnits;
+								print("<div class=\"progress-bar bg-secondary text-center border\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $sumOfUnits . "\" aria-valuemin=\"0\" aria-valuemax=\"" . $maxUnits . "\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"" . number_format($sumOfUnits, 2) . "\">");
+								print("program</div>");
+								print("</div>\n");
+							}
 							print("		</td></tr>\n");
 						}
 					}
@@ -1064,43 +1074,12 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						{
 							case 1:
 								print("		<tr class=\"table-secondary\">");
+								$oneSpan = 5;
 								if ( $accreditationDisplayScript && $bigProgramCompetencies)
 								{
-									if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
-									{
-										print("<th class=\"text-center text-danger align-middle\">");
-										for ($i=0; $i<$bigProgramCompetencies[$competencyKey]->competencyLevel; $i++)
-										{
-											print("✓");
-										}
-										print("</th>");
-									}
-									else
-									{
-										print("<th></th>");
-									}
+									$oneSpan++;
 								}
-								if ( $competency->competencyLevel > 0 )
-								{
-									print("<th class=\"text-center text-success align-middle\">");
-									if ( $accreditationDisplayScript )
-									{
-										for ($i=0; $i<$competency->competencyLevel; $i++)
-										{
-											print("✓");
-										}
-									}
-									else
-									{
-										print("✓");
-									}
-									print("</th>");
-								}
-								else
-								{
-									print("<th></th>");
-								}
-								print("<th colspan=\"2\">" . $competency->label . "</th><th colspan=\"2\">" . $competency->text . "</th>");
+								print("<th colspan=\"" . $oneSpan . "\">" . $competency->label . " " . $competency->text . "</th>");
 								print("</tr>\n");
 								break;
 							case 2:
@@ -1145,7 +1124,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								print("</tr>\n");
 								break;
 							case 3:
-								if ( $accreditationDisplayScript && false )
+								if ( $accreditationDisplayScript )
 								{
 									print("		<tr class=\"small\">");
 									if ( $bigProgramCompetencies)
@@ -1411,6 +1390,20 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						}
 					}
 				}
+				$bigProgramMappingData = array();
+				if ( isset($program->mappingData) && $program->mappingData )
+				{
+					foreach ($program->mappingData as $competencyLabel => $DLs)
+					{
+						if ( !isset($bigProgramMappingData[$competencyLabel]) )
+						{
+							$bigProgramMappingData[$competencyLabel] = array(1 => 0.0, 2 => 0.0, 3 => 0.0);
+						}
+						$bigProgramMappingData[$competencyLabel][1] += $DLs[1];
+						$bigProgramMappingData[$competencyLabel][2] += $DLs[2];
+						$bigProgramMappingData[$competencyLabel][3] += $DLs[3];
+					}
+				}
 				
 				if ( $programMappingData )
 				{
@@ -1455,6 +1448,14 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 							$maxUnits = max($maxUnits, ceil(array_sum($programMappingData[$competencyLabel][$year])));
 						}
 					}
+					if ( $accreditationDisplayScript && $bigProgramMappingData )
+					{
+						foreach ($bigProgramMappingData as $competencyLabel => $DLs)
+						{
+							$maxUnits = max($maxUnits, ceil(array_sum($bigProgramMappingData[$competencyLabel])));
+						}
+					}
+					
 					print("<table class=\"table table-sm table-hover small\">\n");
 					if ( $accreditationDisplayScript )
 					{
@@ -1519,6 +1520,15 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								}
 								print("&nbsp;yr&nbsp;" . $year . "</div>\n");
 							}
+							if ( $accreditationDisplayScript && $bigProgramMappingData )
+							{
+								print("			<div class=\"progress bg-transparent\">");
+								$sumOfUnits = array_sum($bigProgramMappingData[$competency->label]);
+								$mappingPercentage = 100 * $sumOfUnits / $maxUnits;
+								print("<div class=\"progress-bar bg-secondary text-center border\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $sumOfUnits . "\" aria-valuemin=\"0\" aria-valuemax=\"" . $maxUnits . "\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"" . number_format($sumOfUnits, 2) . "\">");
+								print("program</div>");
+								print("</div>\n");
+							}
 							print("		</td></tr>\n");
 						}
 					}
@@ -1545,43 +1555,12 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						{
 							case 1:
 								print("		<tr class=\"table-secondary\">");
+								$oneSpan = 5;
 								if ( $accreditationDisplayScript && $bigProgramCompetencies)
 								{
-									if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
-									{
-										print("<th class=\"text-center text-danger align-middle\">");
-										for ($i=0; $i<$bigProgramCompetencies[$competencyKey]->competencyLevel; $i++)
-										{
-											print("✓");
-										}
-										print("</th>");
-									}
-									else
-									{
-										print("<th></th>");
-									}
+									$oneSpan++;
 								}
-								if ( $competency->competencyLevel > 0 )
-								{
-									print("<th class=\"text-center text-success align-middle\">");
-									if ( $accreditationDisplayScript )
-									{
-										for ($i=0; $i<$competency->competencyLevel; $i++)
-										{
-											print("✓");
-										}
-									}
-									else
-									{
-										print("✓");
-									}
-									print("</th>");
-								}
-								else
-								{
-									print("<th></th>");
-								}
-								print("<th colspan=\"2\">" . $competency->label . "</th><th colspan=\"2\">" . $competency->text . "</th>");
+								print("<th colspan=\"" . $oneSpan . "\">" . $competency->label . " " . $competency->text . "</th>");
 								print("</tr>\n");
 								break;
 							case 2:
@@ -1626,7 +1605,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 								print("</tr>\n");
 								break;
 							case 3:
-								if ( $accreditationDisplayScript && false )
+								if ( $accreditationDisplayScript )
 								{
 									print("		<tr class=\"small\">");
 									if ( $bigProgramCompetencies)
@@ -1693,7 +1672,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 			case 'fdd':
 				print("<section>\n");
 				print("<h2>" . $name . "</h2>\n");
-				print("<div class=\"alert alert-warning font-italic\" role=\"alert\">Note: information provided here is indicative only. This program may not be an allowable FDD combination with the ANU engineering degrees. Please see the specific engineering degree rules on P&amp;C for allowable combinations and for full and current information about this degree, or consult with CECS Student Services.</div>\n");
+				print("<div class=\"alert alert-warning font-italic\" role=\"alert\">Note: information provided here is indicative only. This program may not be an allowable FDD combination with the ANU engineering degrees. See the specific engineering degree rules on P&amp;C for allowable combinations and for full and current information about this degree, or consult with CECS Student Services.</div>\n");
 				print("<div class=\"container\">\n");
 				print("<table class=\"table\">\n");
 				print("	<tbody>\n");
@@ -1958,7 +1937,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("Could not find information for program “" . $code . "”.");
 				break;
 			default:
-				print("Code information incorrect. Please go back and try again.");
+				print("Code information incorrect. Go back and try again.");
 				break;
 		}
 		print("</p></div>\n</section>\n");
@@ -2066,9 +2045,9 @@ else
 						if ( $major->code == $majorCode )
 						{
 							print("		<tr><td class=\"small position-relative\">");
-							print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code), array("major", $major->code)) . "\">" . $major->code . "</a>");
+							print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("major", $major->code)) . "\">" . $major->code . "</a>");
 							print("</td><td class=\"position-relative\">");
-							print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("program", $program->code), array("major", $major->code)) . "\"><span class=\"text-decoration-underline\">major</span>: " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . "</a>");
+							print("<a class=\"stretched-link\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript, array("major", $major->code)) . "\"><span class=\"text-decoration-underline\">major</span>: " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . "</a>");
 							print("</td><td class=\"text-center position-relative\">");
 							print("<a class=\"stretched-link\" href=\"" . generateLinkToProgramsAndCourses($major->code) . "\">" . biBoxArrowUpRight() . "</a>");
 							print("</td></tr>\n");
@@ -2224,7 +2203,7 @@ else
 	{
 		print("<section id=\"fdd\">\n");
 		print("<h2>Mapped non-engineering degree programs (for <abbr title=\"Flexible Double Degree\">FDD</abbr>s)</h2>\n");
-		print("<div class=\"alert alert-warning\">Note: not all of these programs are allowable FDD combinations with the ANU engineering degrees. Please see the specific engineering degree rules on P&amp;C for allowable combinations, or consult with CECS Student Services.</div>\n");
+		print("<div class=\"alert alert-warning\">Note: not all of these programs are allowable FDD combinations with the ANU engineering degrees. See the specific engineering degree rules on P&amp;C for allowable combinations, or consult with CECS Student Services.</div>\n");
 		$fdds = listAllPrograms();
 		if ( $fdds )
 		{
