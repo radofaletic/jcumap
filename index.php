@@ -1784,19 +1784,9 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 							if ( $competency->level == 2 )
 							{
 								print("<td class=\"text-center text-success align-middle\">");
-								if ( isset($fdd->learningOutcomesMapping[$learningOutcomeN][$competencyKey]) && $fdd->learningOutcomesMapping[$learningOutcomeN][$competencyKey] > 0)
+								if ( isset($fdd->learningOutcomesMapping[$learningOutcomeN][$competencyKey]) && $fdd->learningOutcomesMapping[$learningOutcomeN][$competencyKey] > 0 )
 								{
-									if ( $accreditationDisplayScript )
-									{
-										for ($i=0; $i<$fdd->learningOutcomesMapping[$learningOutcomeN][$competencyKey]; $i++)
-										{
-											print("✓");
-										}
-									}
-									else
-									{
-										print("✓");
-									}
+									print("✓");
 								}
 								print("</td>");
 							}
@@ -1844,20 +1834,11 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					{
 						print("		<tr class=\"border-bottom\"><td class=\"text-center align-middle border-right col-1\" data-toggle=\"tooltip\" data-placement=\"left\" data-html=\"true\" title=\"" . $competency->text . "\">" . $competency->label . "</td><td colspan=\"2\" class=\"align-middle\">\n");
 						print("			<div class=\"progress bg-transparent\">");
-						if ( isset($fdd->mappingData[$competency->label][1]) && $fdd->mappingData[$competency->label][1] > 0.0)
+						$mappingSum = array_sum($fdd->mappingData[$competency->label]);
+						if ( $mappingSum > 0.0)
 						{
-							$mappingPercentage = 100 * $fdd->mappingData[$competency->label][1] / $maxUnits;
-							print("<div class=\"progress-bar bg-success text-left\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $fdd->mappingData[$competency->label][1] . "\" aria-valuemin=\"0\" aria-valuemax=\"" . $maxUnits . "\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"" . number_format($fdd->mappingData[$competency->label][1], 2) . "\">DL1</div>");
-						}
-						if ( isset($fdd->mappingData[$competency->label][2]) && $fdd->mappingData[$competency->label][2] > 0.0)
-						{
-							$mappingPercentage = 100 * $fdd->mappingData[$competency->label][2] / $maxUnits;
-							print("<div class=\"progress-bar bg-primary text-center\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $fdd->mappingData[$competency->label][2] . "\" aria-valuemin=\"0\" aria-valuemax=\"" . $maxUnits . "\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"" . number_format($fdd->mappingData[$competency->label][2], 2) . "\">DL2</div>");
-						}
-						if ( isset($fdd->mappingData[$competency->label][3]) && $fdd->mappingData[$competency->label][3] > 0.0)
-						{
-							$mappingPercentage = 100 * $fdd->mappingData[$competency->label][3] / $maxUnits;
-							print("<div class=\"progress-bar bg-danger text-right\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $fdd->mappingData[$competency->label][3] . "\" aria-valuemin=\"0\" aria-valuemax=\"" . $maxUnits . "\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"" . number_format($fdd->mappingData[$competency->label][3], 2) . "\">DL3</div>");
+							$mappingPercentage = 100 * $mappingSum / $maxUnits;
+							print("<div class=\"progress-bar bg-secondary\" role=\"progressbar\" style=\"width: " . $mappingPercentage . "%\" aria-valuenow=\"" . $mappingSum . "\" aria-valuemin=\"0\" aria-valuemax=\"" . $maxUnits . "\" data-toggle=\"tooltip\" data-placement=\"right\" title=\"" . number_format($mappingSum, 2) . "\"></div>");
 						}
 						print("</div>\n");
 						print("		</td></tr>\n");
@@ -1880,46 +1861,14 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					{
 						case 1:
 							print("		<tr class=\"table-secondary\">");
-							if ( $competency->competencyLevel > 0 )
-							{
-								print("<th class=\"text-center text-success align-middle\">");
-								if ( $accreditationDisplayScript )
-								{
-									for ($i=0; $i<$competency->competencyLevel; $i++)
-									{
-										print("✓");
-									}
-								}
-								else
-								{
-									print("✓");
-								}
-								print("</th>");
-							}
-							else
-							{
-								print("<th></th>");
-							}
-							print("<th colspan=\"2\">" . $competency->label . "</th><th colspan=\"2\">" . $competency->text . "</th>");
+							print("<th colspan=\"5\">" . $competency->label . " " . $competency->text . "</th>");
 							print("</tr>\n");
 							break;
 						case 2:
 							print("		<tr class=\"small\">");
 							if ( $competency->competencyLevel > 0 )
 							{
-								print("<td class=\"text-center text-success align-middle\">");
-								if ( $accreditationDisplayScript )
-								{
-									for ($i=0; $i<$competency->competencyLevel; $i++)
-									{
-										print("✓");
-									}
-								}
-								else
-								{
-									print("✓");
-								}
-								print("</td>");
+								print("<td class=\"text-center text-success align-middle\">✓</td>");
 							}
 							else
 							{
