@@ -228,7 +228,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 	print("	<meta name=\"keywords\" content=\"CECS,EA,Engineers Australia,engineering,mapping\">\n");
 	print("	<meta name=\"format-detection\" content=\"telephone=no\">\n\n");
 		
-	print("	<link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css\" integrity=\"sha384-DhY6onE6f3zzKbjUPRc2hOzGAdEf4/Dz+WJwBvEYL/lkkIsI3ihufq9hk9K4lVoK\" crossorigin=\"anonymous\">\n\n");
+	print("	<link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha3/dist/css/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-CuOF+2SnTUfTwSZjCXf01h7uYhfOBuxIhGKPbfEJ3+FqH/s6cIFN9bGr1HmAg4fQ\" crossorigin=\"anonymous\">\n\n");
 		
 	print("	<title>" . $shortname . " :: Professional Skills Mapping :: CECS :: ANU</title>\n");
 	print("</head>\n");
@@ -1907,7 +1907,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 		}
 		print("</p></div>\n</section>\n");
 	}
-	print("<script src=\"https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/js/bootstrap.bundle.min.js\" integrity=\"sha384-BOsAfwzjNJHrJ8cZidOg56tcQWfp6y72vEJ8xQ9w6Quywb24iOsW913URv1IS4GD\" crossorigin=\"anonymous\"></script>\n");
+	print("<script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha3/dist/js/bootstrap.bundle.min.js\" integrity=\"sha384-popRpmFF9JQgExhfw5tZT4I9/CI5e2QcuUZPOVXb1m7qUmeR2b50u+YFEYe1wgzy\" crossorigin=\"anonymous\"></script>\n");
 	print("<script>var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle=\"tooltip\"]')); var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); })</script>\n");
 	print("</body>\n");
 }
@@ -1934,7 +1934,7 @@ else
 	print("	<meta name=\"keywords\" content=\"CECS,EA,Engineers Australia,engineering,mapping\">\n");
 	print("	<meta name=\"format-detection\" content=\"telephone=no\">\n\n");
 		
-	print("	<link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css\" integrity=\"sha384-DhY6onE6f3zzKbjUPRc2hOzGAdEf4/Dz+WJwBvEYL/lkkIsI3ihufq9hk9K4lVoK\" crossorigin=\"anonymous\">\n\n");
+	print("	<link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha3/dist/css/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-CuOF+2SnTUfTwSZjCXf01h7uYhfOBuxIhGKPbfEJ3+FqH/s6cIFN9bGr1HmAg4fQ\" crossorigin=\"anonymous\">\n\n");
 		
 	print("	<title>Professional Skills Mapping :: CECS :: ANU</title>\n");
 	print("</head>\n");
@@ -1948,6 +1948,7 @@ else
 	
 	// get the programs
 	$programs = array();
+	$majors = array();
 	if (isset($programDefinitions) && count($programDefinitions))
 	{
 		foreach ($programDefinitions as $program)
@@ -1956,21 +1957,17 @@ else
 			if ( isset($program) && isset($program->name) )
 			{
 				$programs[$program->code] = $program;
-			}
-		}
-	}
-	
-	// get the majors
-	$majors = array();
-	$majorDefinitions = getDefinition("majors");
-	if ( isset($majorDefinitions) && count($majorDefinitions) )
-	{
-		foreach ($majorDefinitions as $major)
-		{
-			$major = getDefinition($major);
-			if ( isset($major) && isset($major->name) )
-			{
-				$majors[$major->code] = $major;
+				if ( $program->majors )
+				{
+					foreach ($program->majors as $majorCode)
+					{
+						$major = getDefinition($majorCode);
+						if ( isset($major) && isset($major->name) )
+						{
+							$majors[$major->code] = $major;
+						}
+					}
+				}
 			}
 		}
 	}
