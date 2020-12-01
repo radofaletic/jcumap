@@ -1,15 +1,15 @@
 <?php
 /*
-	jcumap-output-processor.php
+	jcumap-processor.php
 
-	by © 2020, Dr Rado Faletič (rado.faletic@anu.edu.au)
+	by © 2020 Dr Rado Faletič (rado.faletic@anu.edu.au)
 */
 
-function biBoxArrowUpRight()
-{
-	return '<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-box-arrow-up-right" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/><path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/></svg>';
-}
 
+
+
+
+/* This function reads JSON files and returns the data as an associative array */
 function getDefinition($code)
 {
 	$jsonFile = "./definitions/" . $code . ".json";
@@ -22,11 +22,17 @@ function getDefinition($code)
 	return $json;
 }
 
+
+
+
+
+/* This function reads the XML output files from JCUMap and prepares the data for use on this website */
 function getCourse($code, $detail = 'basic', $type = 'course')
 {
 	$data = new stdClass();
 	$data->code = $code;
 	$data->name = "";
+	$data->fileName = "";
 	$data->description = "";
 	$data->units = 0;
 	$data->competencyName = "";
@@ -291,16 +297,30 @@ function getCourse($code, $detail = 'basic', $type = 'course')
 	return $data;
 }
 
+
+
+
+
 function getProgram($code, $details = 'basic')
 {
 	return getCourse($code, $details, 'program');
 }
+
+
+
+
 
 function getFDD($code, $details = 'basic')
 {
 	return getCourse($code, $details, 'fdd');
 }
 
+
+
+
+
+/* This function produces an array of all course codes available on this site.
+	The format of the array is [course_code] => [course_file_basename] */
 function listAllCourseCodes()
 {
 	$courses = array();
@@ -309,14 +329,41 @@ function listAllCourseCodes()
 	{
 		if ( 12 <= strlen($filename) && ctype_upper( substr($filename, 0, 4) ) && ctype_digit( substr($filename, 4, 4) ) && substr($filename, -4) == ".xml" && substr($filename, -17) != "MappingResult.xml" )
 		{
-			$courseCode = substr($filename, 0, 8);
-			$courses[$courseCode] = $courseCode;
+			$courseFilename = substr($filename, 0, -4);
+			$coursePrefix = substr($filename, 0, 4);
+			$courseNumber = substr($filename, 4, 4);
+			$courses[$coursePrefix . $courseNumber] = $courseFilename;
+			$leftover = substr($filename, 8, -4);
+			if ( strlen($leftover) )
+			{
+				if ( substr($leftover, 0, 1) == '-' )
+				{
+					$leftover = substr($leftover, 1);
+				}
+				if ( 8 <= strlen($leftover) && ctype_upper( substr($leftover, 0, 4) ) && ctype_digit( substr($leftover, 4, 4) ) )
+				{
+					$coursePrefix = substr($leftover, 0, 4);
+					$courseNumber = substr($leftover, 4, 4);
+					$courses[$coursePrefix . $courseNumber] = $courseFilename;
+				}
+				else if ( 4 <= strlen($leftover) && ctype_digit( substr($leftover, 0, 4) ) )
+				{
+					$courseNumber = substr($leftover, 0, 4);
+					$courses[$coursePrefix . $courseNumber] = $courseFilename;
+				}
+			}
 		}
     }
     ksort($courses);
     return $courses;
 }
 
+
+
+
+
+/* This function produces an array of all program codes available on this site.
+	The format of the array is [program_code] => [program_code] */
 function listAllPrograms()
 {
 	$programs = array();
@@ -333,6 +380,11 @@ function listAllPrograms()
     return $programs;
 }
 
+
+
+
+
+/* This function returns an array of the assessment types that are coded into JCUMap */
 function listAssessmentTypes()
 {
 	$types = array();
@@ -442,76 +494,4 @@ function listAssessmentTypes()
 	$types[20] = $type;
 	
 	return $types;
-}
-
-function createLink($display = "pretty", $prefix = "/", $base = "index.php", $q1 = array(), $q2 = array())
-{
-	$url = "";
-	switch ($display)
-	{
-		case "pretty":
-			$url = $prefix;
-			if ( $base != "index.php" &&  substr($base, -4) == ".php" )
-			{
-				$url .= substr($base, 0, -4);
-			}
-			if ( $q1 & count($q1) == 2 )
-			{
-				if ( substr($url, -1) != "/" )
-				{
-					$url .= "/";
-				}
-				if ( $q1[0] == "fdd" )
-				{
-					$url .= "FDD-";
-				}
-				$url .= $q1[1];
-				if ( $q2 && count($q1) == 2 )
-				{
-					$url .= "/" . $q2[1];
-				}
-			}
-			break;
-		case "php":
-			$url = $prefix;
-			if ( $base != "index.php" )
-			{
-				$url .= $base;
-			}
-			if ( $q1 && count($q1) == 2 )
-			{
-				$url .= "?" . $q1[0] . "=" . $q1[1];
-				if ( $q2 && count($q2) == 2)
-				{
-					$url .= "&amp;" . $q2[0] . "=" . $q2[1];
-				}
-			}
-			break;
-	}
-	return $url;
-}
-
-function generateLinkToProgramsAndCourses($code)
-{
-	$urlPrefix = "https://programsandcourses.anu.edu.au";
-	$programPrefix = "/program";
-	$majorPrefix = "/major";
-	$coursePrefix = "/course";
-	
-	// check if code is a course, major, or program
-	$code = trim($code);
-	$url = $urlPrefix;
-	if ( strlen($code) == 8 && ctype_upper( substr($code, 0, 4) ) && ctype_digit( substr($code, -4) ) )
-	{
-		$url .= $coursePrefix . "/" . $code;
-	}
-	else if ( strlen($code) == 8 && ctype_upper( substr($code, 0, 4) ) && ctype_upper( substr($code, -3) ) && substr($code, 4, 1) == "-" )
-	{
-		$url .= $majorPrefix . "/" . $code;
-	}
-	else if ( 3 <= strlen($code) && ctype_upper($code) )
-	{
-		$url .= $programPrefix . "/" . $code;
-	}
-	return $url;
 }
