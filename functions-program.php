@@ -86,33 +86,8 @@ function createProgramDetails($code, &$program, &$name, &$shortname)
 
 
 
-// This function creates FDD details and generates $name and $shortname that can be displayed in HTML
-function createFDDDetails($code, &$fdd, &$name, &$shortname)
-{
-	$fdd = getFDD($code, 'full');
-	if ( $fdd && $fdd->name )
-	{
-		$name = '<span class="fst-italic">' . $fdd->name . '</span>';
-		$shortname = $fdd->name;
-	}
-}
-
-
-
-
-
 // This function is a specialised alias of getCourse(...)
 function getProgram($code, $details = 'basic')
 {
 	return getCourse($code, array(), $details, 'program');
-}
-
-
-
-
-
-// This function is a specialised alias of getCourse(...)
-function getFDD($code, $details = 'basic')
-{
-	return getCourse($code, array(), $details, 'fdd');
 }
