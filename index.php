@@ -6,21 +6,33 @@
 
 	by © 2020 Dr Rado Faletič (rado.faletic@anu.edu.au)
 */
+
 ini_set('display_errors', true);
 ini_set('display_startup_errors', true);
 error_reporting(E_ALL);
 
-require_once("./jcumap-processor.php");
-require_once("./html-processor.php");
 
-$accreditationDisplayScript = "";
+
+
+
+require_once('./functions-jcumap.php');
+require_once('./functions-html.php');
+require_once('./functions-course.php');
+require_once('./functions-major.php');
+require_once('./functions-program.php');
+
+
+
+
+
+$accreditationDisplayScript = '';
 if ( isset($_GET['accreditationDisplay']) || ( isset($displayInformationForAccreditation) && $displayInformationForAccreditation) )
 {
 	$accreditationDisplayScript = 'accreditation.php';
 }
-$urlDisplayType = "pretty";//"php"
-$urlPrefix = "/";
-$urlScript = ( $accreditationDisplayScript ) ? $accreditationDisplayScript : "index.php";
+$urlDisplayType = 'pretty';//'php'
+$urlPrefix = '/';
+$urlScript = ( $accreditationDisplayScript ) ? $accreditationDisplayScript : 'index.php';
 
 
 	
@@ -42,17 +54,17 @@ $codeFDD = false;
 if ( isset($_GET['program']) && strlen($_GET['program']) )
 {
 	$tmpCode = strtoupper(trim($_GET['program']));
-	if ( strlen($tmpCode) == 5 && ctype_upper($tmpCode) )
+	if ( 5 <= strlen($tmpCode) && strlen($tmpCode) <= 6 && ctype_upper($tmpCode) )
 	{
 		$_GET['code'] = $tmpCode;
 	}
 	$codeProgram = $tmpCode;
 }
-$programDefinitions = getDefinition("programs");
+$programDefinitions = getDefinition('programs');
 if ( isset($_GET['major']) && strlen($_GET['major']) )
 {
 	$tmpCode = strtoupper(trim($_GET['major']));
-	if ( strlen($tmpCode) == 8 && ctype_upper( substr($tmpCode, 0, 4) ) && ctype_upper( substr($tmpCode, -3) ) && substr($tmpCode, 4, 1) == "-" )
+	if ( strlen($tmpCode) == 8 && ctype_upper( substr($tmpCode, 0, 4) ) && ctype_upper( substr($tmpCode, -3) ) && substr($tmpCode, 4, 1) == '-' )
 	{
 		$_GET['code'] = $tmpCode;
 	}
@@ -79,24 +91,28 @@ if ( $accreditationDisplayScript && isset($_GET['fdd']) && strlen($_GET['fdd']) 
 if ( isset($_GET['code']) && strlen($_GET['code']) )
 {
 	$code = strtoupper(trim($_GET['code']));
-	$name = "";
-	$shortname = "";
+	$name = '';
+	$shortname = '';
 	$type = false;
 	$program = false;
 	$major = false;
 	$course = false;
 	$fdd = false;
+	$courseCodes = array();
 	if ( $codeCourse && strlen($code) == 8 && ctype_upper( substr($code, 0, 4) ) && ctype_digit( substr($code, -4) ) )
 	{
 		$type = 'course';
+		$courseCodes = listAllCourseCodes();
 	}
-	else if ( $codeMajor && strlen($code) == 8 && ctype_upper( substr($code, 0, 4) ) && ctype_upper( substr($code, -3) ) && substr($code, 4, 1) == "-" )
+	else if ( $codeMajor && strlen($code) == 8 && ctype_upper( substr($code, 0, 4) ) && ctype_upper( substr($code, -3) ) && substr($code, 4, 1) == '-' )
 	{
 		$type = 'major';
+		$courseCodes = listAllCourseCodes();
 	}
-	else if ( $codeProgram && strlen($code) == 5 && ctype_upper($code) )
+	else if ( $codeProgram && 5 <= strlen($code) && strlen($code) <= 6 && ctype_upper($code) )
 	{
 		$type = 'program';
+		$courseCodes = listAllCourseCodes();
 	}
 	else if ( $codeFDD && 3 <= strlen($code) && ctype_upper($code) )
 	{
@@ -109,116 +125,16 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 	switch ($type)
 	{
 		case 'course':
-			$course = getCourse($code, 'full');
-			if ( $course && $course->name )
-			{
-				$name = $code . " — <span class=\"fst-italic\">" . $course->name . "</span>";
-				$shortname = $code;
-			}
+			createCourseDetails($code, $courseCodes, $course, $name, $shortname);
 			break;
 		case 'major':
-			$major = getDefinition($code);
-			if ( $major && isset($major->name) )
-			{
-				$name = htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . " major";
-				$shortname = $name;
-				if ( $codeProgram )
-				{
-					$program = getProgram($codeProgram, 'full');
-					if ( $program && $program->name )
-					{
-						$programDefinition = getDefinition($codeProgram);
-						if ( $programDefinition && isset($programDefinition->name) )
-						{
-							$program->courses = $programDefinition->courses;
-							$program->coursesForAggregating = array();
-							if ( isset($programDefinition->coursesForAggregating) )
-							{
-								$program->coursesForAggregating = $programDefinition->coursesForAggregating;
-							}
-							else
-							{
-								$program->coursesForAggregating = $programDefinition->courses;
-							}
-							$program->majors = $programDefinition->majors;
-							$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5). "  (major in " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
-							$shortname = htmlspecialchars($programDefinition->program, ENT_QUOTES|ENT_HTML5). " (" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
-						}
-					}
-					else
-					{
-						$program = getDefinition($codeProgram);
-						if ( $program && isset($program->name) )
-						{
-							if ( !isset($program->coursesForAggregating) )
-							{
-								$program->coursesForAggregating = $program->courses;
-							}
-							$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . "  (major in " . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
-							$shortname = htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . " (" . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ")";
-						}
-					}
-				}
-				if ( !$name )
-				{
-					$name = htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . " major";
-					$shortname = $name;
-				}
-			}
+			createMajorDetails($code, $codeProgram, $major, $program, $name, $shortname);
 			break;
 		case 'program':
-			$program = getProgram($code, 'full');
-			if ( $program && $program->name )
-			{
-				$programDefinition = getDefinition($code);
-				if ( $programDefinition && isset($programDefinition->name) )
-				{
-					$program->courses = $programDefinition->courses;
-					$program->coursesForAggregating = array();
-					if ( isset($programDefinition->coursesForAggregating) )
-					{
-						$program->coursesForAggregating = $programDefinition->coursesForAggregating;
-					}
-					else
-					{
-						$program->coursesForAggregating = $programDefinition->courses;
-					}
-					$program->majors = $programDefinition->majors;
-					$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5);
-					$shortname = htmlspecialchars($programDefinition->program, ENT_QUOTES|ENT_HTML5);
-					if ( isset($program->majors) && $program->majors )
-					{
-						$name .= " core";
-						$shortname .= " (core)";
-					}
-				}
-			}
-			else
-			{
-				$program = getDefinition($code);
-				if ( $program && isset($program->name) )
-				{
-					if ( !isset($program->coursesForAggregating) )
-					{
-						$program->coursesForAggregating = $program->courses;
-					}
-					$name = htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5);
-					$shortname = htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5);
-					if ( isset($program->majors) && $program->majors )
-					{
-						$name .= " core";
-						$shortname .= " (core)";
-					}
-				}
-			}
+			createProgramDetails($code, $program, $name, $shortname);
 			break;
 		case 'fdd':
-			$fdd = getFDD($code, 'full');
-			if ( $fdd && $fdd->name )
-			{
-				$name = "<span class=\"fst-italic\">" . $fdd->name . "</span>";
-				$shortname = $fdd->name;
-			}
+			createFDDDetails($code, $fdd, $name, $shortname);
 			break;
 	}
 	if ( !$code || !$type )
@@ -226,21 +142,21 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 		$code = false;
 	}
 	
-	print("<head>\n");
-	print("	<meta charset=\"utf-8\">\n");
-	print("	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n");
-	print("	<meta name=\"description\" content=\"CECS Professional Skills Mapping\">\n");
-	print("	<meta name=\"author\" content=\"Rado Faletič\">\n");
-	print("	<meta name=\"keywords\" content=\"CECS,EA,Engineers Australia,engineering,mapping\">\n");
-	print("	<meta name=\"format-detection\" content=\"telephone=no\">\n\n");
-		
-	print("	<link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha3/dist/css/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-CuOF+2SnTUfTwSZjCXf01h7uYhfOBuxIhGKPbfEJ3+FqH/s6cIFN9bGr1HmAg4fQ\" crossorigin=\"anonymous\">\n\n");
-		
-	print("	<title>" . $shortname . " :: Professional Skills Mapping :: CECS :: ANU</title>\n");
-	print("</head>\n");
+	echo '<head>' . PHP_EOL;
+	echo '	<meta charset="utf-8">' . PHP_EOL;
+	echo '	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">' . PHP_EOL;
+	echo '	<meta name="description" content="CECS Professional Skills Mapping">' . PHP_EOL;
+	echo '	<meta name="author" content="Rado Faletič">' . PHP_EOL;
+	echo '	<meta name="keywords" content="CECS,EA,Engineers Australia,engineering,mapping">' . PHP_EOL;
+	echo '	<meta name="format-detection" content="telephone=no">' . PHP_EOL;
 	
-	print("<body class=\"container\">\n");
-	print("<header><h1 class=\"display-1 text-center\"><a class=\"text-reset\" href=\"" . createLink($urlDisplayType, $urlPrefix, $urlScript) . "\">CECS Professional Skills Mapping</a></h1></header>\n");
+	echo customCSS('	', PHP_EOL);
+		
+	echo '	<title>' . $shortname . ' :: Professional Skills Mapping :: CECS :: ANU</title>' . PHP_EOL;
+	echo '</head>' . PHP_EOL;
+	
+	echo '<body class="container">' . PHP_EOL;
+	echo '	<header><h1 class="display-1 text-center"><a class="text-reset" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript) . '">CECS Professional Skills Mapping</a></h1></header>' . PHP_EOL;
 	if ( $code && $type && $name )
 	{
 		switch ($type)
@@ -269,13 +185,13 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				if ( $accreditationDisplayScript )
 				{
 					print("		<tr><th><i>JCUMap</i> files: </th><td><ul class=\"m-0\">");
-					if ( file_exists("courses/" . $code . ".xml") )
+					if ( file_exists("courses/" . $course->fileName . ".xml") )
 					{
-						print("<li><a href=\"" . $urlPrefix . "courses/" . $code . ".xml\" download>" . $code . ".xml</a></li>");
+						print("<li><a href=\"" . $urlPrefix . "courses/" . $course->fileName . ".xml\" download>" . $course->fileName . ".xml</a></li>");
 					}
-					if ( file_exists("courses/" . $code . "MappingResult.xml") )
+					if ( file_exists("courses/" . $course->fileName . "MappingResult.xml") )
 					{
-						print("<li><a href=\"" . $urlPrefix . "courses/" . $code . "MappingResult.xml\" download>" . $code . "MappingResult.xml</a></li>");
+						print("<li><a href=\"" . $urlPrefix . "courses/" . $course->fileName . "MappingResult.xml\" download>" . $course->fileName . "MappingResult.xml</a></li>");
 					}
 					print("</ul></td></tr>\n");
 				}				
@@ -731,7 +647,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 						print("		<tr><th>courses in core: </th><td class=\"small\" style=\"column-count: 2;\"><ul>\n");
 						foreach ($program->courses as $courseKey => $course)
 						{
-							$course = getCourse($course, 'full');
+							$course = getCourse($course, $courseCodes, 'full');
 							if ( $course )
 							{
 								print("				<li>");
@@ -762,7 +678,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					print("		<tr><th>courses in major: </th><td class=\"small\" style=\"column-count: 2;\"><ul>\n");
 					foreach ($major->courses as $courseKey => $course)
 					{
-						$course = getCourse($course, 'full');
+						$course = getCourse($course, $courseCodes, 'full');
 						if ( $course )
 						{
 							print("				<li>");
@@ -1216,13 +1132,13 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				if ($accreditationDisplayScript)
 				{
 					print("		<tr><th><i>JCUMap</i> files: </th><td><ul class=\"m-0\">");
-					if ( file_exists("programs/" . $code . ".xml") )
+					if ( file_exists("programs/" . $program->code . ".xml") )
 					{
-						print("<li><a href=\"" . $urlPrefix . "programs/" . $code . ".xml\" download>" . $code . ".xml</a></li>");
+						print("<li><a href=\"" . $urlPrefix . "programs/" . $program->code . ".xml\" download>" . $program->code . ".xml</a></li>");
 					}
-					if ( file_exists("programs/" . $code . "MappingResult.xml") )
+					if ( file_exists("programs/" . $program->code . "MappingResult.xml") )
 					{
-						print("<li><a href=\"" . $urlPrefix . "programs/" . $code . "MappingResult.xml\" download>" . $code . "MappingResult.xml</a></li>");
+						print("<li><a href=\"" . $urlPrefix . "programs/" . $program->code . "MappingResult.xml\" download>" . $program->code . "MappingResult.xml</a></li>");
 					}
 					print("</ul></td></tr>\n");
 				}
@@ -1258,7 +1174,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 					print(": </th><td class=\"small\" style=\"column-count: 2;\"><ul>\n");
 					foreach ($program->courses as $courseKey => $course)
 					{
-						$course = getCourse($course, 'full');
+						$course = getCourse($course, $courseCodes, 'full');
 						print("				<li>");
 						if ( $course->name )
 						{
@@ -1699,13 +1615,13 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 				print("<table class=\"table\">\n");
 				print("	<tbody>\n");
 				print("		<tr><th><i>JCUMap</i> files: </th><td><ul class=\"m-0\">");
-				if ( file_exists("programs/" . $code . ".xml") )
+				if ( file_exists("programs/" . $fdd->fileName . ".xml") )
 				{
-					print("<li><a href=\"" . $urlPrefix . "programs/" . $code . ".xml\" download>" . $code . ".xml</a></li>");
+					print("<li><a href=\"" . $urlPrefix . "programs/" . $fdd->fileName . ".xml\" download>" . $fdd->fileName . ".xml</a></li>");
 				}
-				if ( file_exists("programs/" . $code . "MappingResult.xml") )
+				if ( file_exists("programs/" . $fdd->fileName . "MappingResult.xml") )
 				{
-					print("<li><a href=\"" . $urlPrefix . "programs/" . $code . "MappingResult.xml\" download>" . $code . "MappingResult.xml</a></li>");
+					print("<li><a href=\"" . $urlPrefix . "programs/" . $fdd->fileName . "MappingResult.xml\" download>" . $fdd->fileName . "MappingResult.xml</a></li>");
 				}
 				print("</ul></td></tr>\n");
 				if ( isset($fdd->description) && $fdd->description )
@@ -1895,31 +1811,15 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 	}
 	else
 	{
-		print("<section>\n<div class=\"alert alert-danger\" role=\"alert\"><h3 class=\"alert-heading\">Error</h3><p>");
-		switch ($type)
-		{
-			case 'course':
-				print("Could not find information for course “" . $code . "”.");
-				break;
-			case 'major':
-				print("Could not find information for major “" . $code . "”.");
-				break;
-			case 'program':
-				print("Could not find information for program “" . $code . "”.");
-				break;
-			default:
-				print("Code information incorrect. Go back and try again.");
-				break;
-		}
-		print("</p></div>\n</section>\n");
+		echo '	' . resourceNotFound($type, $code) . PHP_EOL;
 	}
-	print("<script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha3/dist/js/bootstrap.bundle.min.js\" integrity=\"sha384-popRpmFF9JQgExhfw5tZT4I9/CI5e2QcuUZPOVXb1m7qUmeR2b50u+YFEYe1wgzy\" crossorigin=\"anonymous\"></script>\n");
-	print("<script>var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle=\"tooltip\"]')); var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); })</script>\n");
-	print("</body>\n");
+	echo '	' . htmlPageFooter() . PHP_EOL;
+	echo customJS('	', PHP_EOL);
+	echo '</body>' . PHP_EOL;
 }
 else
 {
-	defaultLandingPage($programDefinitions, $urlDisplayType, $urlPrefix, $urlScript, $accreditationDisplayScript);
+	printDefaultLandingPage($programDefinitions, $urlDisplayType, $urlPrefix, $urlScript, $accreditationDisplayScript);
 }
 ?>
 </html>
