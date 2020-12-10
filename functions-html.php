@@ -28,8 +28,7 @@ function customCSS($indent = '	', $eol = PHP_EOL)
 {
 	$indent = ( $indent ) ? '	' : '';
 	$eol = ( $eol ) ? PHP_EOL : '';
-	
-	$customCSS = $indent . '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-CuOF+2SnTUfTwSZjCXf01h7uYhfOBuxIhGKPbfEJ3+FqH/s6cIFN9bGr1HmAg4fQ" crossorigin="anonymous">' . $eol;
+	$customCSS = $indent . '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">' . $eol;
 	return $customCSS;
 }
 
@@ -42,9 +41,8 @@ function customJS($indent = '	', $eol = PHP_EOL)
 {
 	$indent = ( $indent ) ? '	' : '';
 	$eol = ( $eol ) ? PHP_EOL : '';
-	
-	$customJS = $indent . '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-popRpmFF9JQgExhfw5tZT4I9/CI5e2QcuUZPOVXb1m7qUmeR2b50u+YFEYe1wgzy" crossorigin="anonymous"></script>' . $eol;
-	$customJS .= $indent . '<script>var tooltipTriggerList = [].slice.call(document.querySelectorAll(\'[data-toggle="tooltip"]\')); var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); })</script>' . $eol;
+	$customJS = $indent . '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>' . $eol;
+	$customJS .= $indent . '<script>var tooltipTriggerList = [].slice.call(document.querySelectorAll(\'[data-bs-toggle="tooltip"]\')); var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); })</script>' . $eol;
 	return $customJS;
 }
 
@@ -174,7 +172,7 @@ function resourceNotFound($type, $code)
 
 
 // This function generates the default landing page
-function printDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty', $urlPrefix = '/', $urlScript = 'index.php', $accreditationDisplayScript = '')
+function displayDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty', $urlPrefix = '/', $urlScript = 'index.php', $accreditationDisplayScript = '')
 {
 	echo '<head>' . PHP_EOL;
 	echo '	<meta charset="utf-8">' . PHP_EOL;
@@ -189,10 +187,11 @@ function printDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty'
 	
 	echo '<body class="container">' . PHP_EOL;
 	echo '	<h1 class="display-1 text-center"><a class="text-reset" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript) . '">CECS Professional Skills Mapping</a></h1>' . PHP_EOL;
-	echo '	<div class="alert alert-info fst-italic" role="alert">Note: information provided here is indicative only. For full and current information view the official pages on P&amp;C.</div>' . PHP_EOL;
+	echo '	<div class="alert alert-info fst-italic" role="alert">Note: information provided here is indicative only. For full and current information view the official pages on <a class="alert-link" href="https://programsandcourses.anu.edu.au/">Programs and Courses</a>.</div>' . PHP_EOL;
 	
-	echo '	<section id="programs">' . PHP_EOL;
-	echo '		<h2>Mapped degree programs &amp; majors</h2>' . PHP_EOL;
+	echo '	<main>' . PHP_EOL;
+	echo '		<section id="programs">' . PHP_EOL;
+	echo '			<h2>Mapped degree programs &amp; majors</h2>' . PHP_EOL;
 	
 	// get the programs
 	$programs = array();
@@ -204,8 +203,21 @@ function printDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty'
 			$program = getDefinition($program);
 			if ( isset($program) && isset($program->name) )
 			{
-				$programs[$program->code] = $program;
-				if ( $program->majors )
+				$programType = 'other';
+				if ( substr($program->name, 0, 8) == 'Bachelor' )
+				{
+					$programType = 'Bachelor';
+				}
+				else if ( substr($program->name, 0, 6) == 'Master' )
+				{
+					$programType = 'Master';
+				}
+				if ( !isset($programs[$programType]) )
+				{
+					$programs[$programType] = array();
+				}
+				$programs[$programType][$program->code] = $program;
+				if ( isset($program->majors) && $program->majors )
 				{
 					foreach ($program->majors as $majorCode)
 					{
@@ -220,62 +232,64 @@ function printDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty'
 		}
 	}
 	
-	echo '		<div class="container">' . PHP_EOL;
 	if ( $programs ) {
-		echo '			<table class="table table-sm table-hover">' . PHP_EOL;
-		echo '				<thead class="bg-light sticky-top">' . PHP_EOL;
-		echo '					<tr><th class="small col-2">code</th><th>name</th><th class="text-center col-1">P&amp;C</th></tr>' . PHP_EOL;
-		echo '				</thead>' . PHP_EOL;
-		echo '				<tbody>' . PHP_EOL;
-		foreach ($programs as $program)
+		foreach ($programs as $programType => $progs)
 		{
-			echo '					<tr class="table-secondary"><td class="small"></td><td class="h3">';
-			echo $program->name;
-			echo '</td><td class="text-center position-relative">';
-			echo '<a class="stretched-link" href="' . generateLinkToProgramsAndCourses($program->code) . '">' . biBoxArrowUpRight() . '</a>';
-			echo '</td></tr>' . PHP_EOL;
-			echo '					<tr><td class="small position-relative">';
-			echo '<a class="stretched-link" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('program', $program->code)) . '">' . $program->code . '</a>';
-			echo '</td><td class="position-relative">';
-			echo '<a class="stretched-link" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('program', $program->code)) . '">';
-			if ( $program->majors )
+			echo '			<table class="table table-sm table-hover caption-top">' . PHP_EOL;
+			echo '				<caption><h3>' . $programType . ' degrees</h3></caption>' . PHP_EOL;
+			echo '				<thead class="bg-light sticky-top">' . PHP_EOL;
+			echo '					<tr><th class="small col-2">code</th><th>name</th><th class="text-center col-1">P&amp;C</th></tr>' . PHP_EOL;
+			echo '				</thead>' . PHP_EOL;
+			echo '				<tbody>' . PHP_EOL;
+			foreach ($progs as $program)
 			{
-				echo '<span class="text-decoration-underline">engineering core</span>: ';
-			}
-			echo htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . '</a>';
-			echo '</td><td class="text-center position-relative">';
-			echo '<a class="stretched-link" href="' . generateLinkToProgramsAndCourses($program->code) . '">' . biBoxArrowUpRight() . '</a>';
-			echo '</td></tr>' . PHP_EOL;
-			if ( $program->majors )
-			{
-				foreach ($program->majors as $majorCode)
+				echo '					<tr class="table-secondary"><td class="small"></td><td><h4 class="m-0">';
+				echo $program->name;
+				echo '</h4></td><td class="text-center position-relative">';
+				echo '<a class="stretched-link" href="' . generateLinkToProgramsAndCourses($program->code) . '">' . biBoxArrowUpRight() . '</a>';
+				echo '</td></tr>' . PHP_EOL;
+				echo '					<tr><td class="small position-relative">';
+				echo '<a class="stretched-link" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('program', $program->code)) . '">' . $program->code . '</a>';
+				echo '</td><td class="position-relative">';
+				echo '<a class="stretched-link" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('program', $program->code)) . '">';
+				if ( isset($program->majors) && $program->majors )
 				{
-					foreach ($majors as $major)
+					echo '<span class="text-decoration-underline">engineering core</span>: ';
+				}
+				echo htmlspecialchars($program->program, ENT_QUOTES|ENT_HTML5) . '</a>';
+				echo '</td><td class="text-center position-relative">';
+				echo '<a class="stretched-link" href="' . generateLinkToProgramsAndCourses($program->code) . '">' . biBoxArrowUpRight() . '</a>';
+				echo '</td></tr>' . PHP_EOL;
+				if ( isset($program->majors) && $program->majors )
+				{
+					foreach ($program->majors as $majorCode)
 					{
-						if ( $major->code == $majorCode )
+						foreach ($majors as $major)
 						{
-							echo '					<tr><td class="small position-relative">';
-							echo '<a class="stretched-link" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array("major", $major->code)) . '">' . $major->code . '</a>';
-							echo '</td><td class="position-relative">';
-							echo '<a class="stretched-link" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array("major", $major->code)) . '"><span class="text-decoration-underline">major</span>: ' . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . '</a>';
-							echo '</td><td class="text-center position-relative">';
-							echo '<a class="stretched-link" href="' . generateLinkToProgramsAndCourses($major->code) . '">' . biBoxArrowUpRight() . '</a>';
-							echo '</td></tr>' . PHP_EOL;
+							if ( $major->code == $majorCode )
+							{
+								echo '					<tr><td class="small position-relative">';
+								echo '<a class="stretched-link" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array("major", $major->code)) . '">' . $major->code . '</a>';
+								echo '</td><td class="position-relative">';
+								echo '<a class="stretched-link" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array("major", $major->code)) . '"><span class="text-decoration-underline">major</span>: ' . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . '</a>';
+								echo '</td><td class="text-center position-relative">';
+								echo '<a class="stretched-link" href="' . generateLinkToProgramsAndCourses($major->code) . '">' . biBoxArrowUpRight() . '</a>';
+								echo '</td></tr>' . PHP_EOL;
+							}
 						}
 					}
 				}
 			}
+			echo '				</tbody>' . PHP_EOL;
+			echo '			</table>' . PHP_EOL;
 		}
-		echo '				</tbody>' . PHP_EOL;
-		echo '			</table>' . PHP_EOL;
 	} else {
 		echo '		<div class="alert alert-danger" role="alert"><h3 class="alert-heading">Error</h3><p>Could not load programs and majors.</p></div>' . PHP_EOL;
 	}
-	echo '		</div>' . PHP_EOL;
-	echo '	</section>' . PHP_EOL;
+	echo '		</section>' . PHP_EOL;
 	
-	echo '	<section id="courses">' . PHP_EOL;
-	echo '		<h2>Mapped courses</h2>' . PHP_EOL;
+	echo '		<section id="courses">' . PHP_EOL;
+	echo '			<h2>Mapped courses</h2>' . PHP_EOL;
 	$courses = listAllCourseCodes();
 	$engnCourses = array();
 	foreach ($courses as $courseKey => $courseFile)
@@ -303,9 +317,8 @@ function printDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty'
 	}
 	if ( $engnCourses )
 	{
-		echo '		<div class="container" id="ENGN">' . PHP_EOL;
-		echo '			<table class="table table-sm table-hover caption-top">' . PHP_EOL;
-		echo '				<caption class="h3">Engineering</caption>' . PHP_EOL;
+		echo '			<table class="table table-sm table-hover caption-top" id="ENGN">' . PHP_EOL;
+		echo '				<caption><h3 class="m-0">Engineering</h3></caption>' . PHP_EOL;
 		echo '				<thead class="bg-light sticky-top">' . PHP_EOL;
 		echo '					<tr><th class="small col-2">code</th><th>name</th><th class="text-center col-1">P&amp;C</th></tr>' . PHP_EOL;
 		echo '				</thead>' . PHP_EOL;
@@ -333,13 +346,11 @@ function printDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty'
 		}
 		echo '				</tbody>' . PHP_EOL;
 		echo '			</table>' . PHP_EOL;
-		echo '		</div>' . PHP_EOL;
 	}
 	if ( $compCourses )
 	{
-		echo '		<div class="container" id="COMP">' . PHP_EOL;
-		echo '			<table class="table table-sm table-hover caption-top">' . PHP_EOL;
-		echo '				<caption class="h3">Computing</caption>' . PHP_EOL;
+		echo '			<table class="table table-sm table-hover caption-top" id="COMP">' . PHP_EOL;
+		echo '				<caption><h3 class="m-0">Computing</h3></caption>' . PHP_EOL;
 		echo '				<thead class="bg-light sticky-top">' . PHP_EOL;
 		echo '					<tr><th class="small col-2">code</th><th>name</th><th class="text-center col-1">P&amp;C</th></tr>' . PHP_EOL;
 		echo '				</thead>' . PHP_EOL;
@@ -367,17 +378,15 @@ function printDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty'
 		}
 		echo '				</tbody>' . PHP_EOL;
 		echo '			</table>' . PHP_EOL;
-		echo '		</div>' . PHP_EOL;
 	}
 	if ( !$engnCourses && !$compCourses )
 	{
-		echo '		<div class="container"><div class="alert alert-danger" role="alert"><h3 class="alert-danger">Error</h3><p>Could not find any ENGN or COMP course mappings.</p></div></div>' . PHP_EOL;
+		echo '			<div class="container"><div class="alert alert-danger" role="alert"><h3 class="alert-danger">Error</h3><p>Could not find any ENGN or COMP course mappings.</p></div></div>' . PHP_EOL;
 	}
 	if ( $otherCourses )
 	{
-		echo '		<div class="container" id="other">' . PHP_EOL;
-		echo '			<table class="table table-sm table-hover caption-top">' . PHP_EOL;
-		echo '				<caption class="h3">Other</caption>' . PHP_EOL;
+		echo '			<table class="table table-sm table-hover caption-top" id="other">' . PHP_EOL;
+		echo '				<caption><h3 class="m-0">Other</h3></caption>' . PHP_EOL;
 		echo '				<thead class="bg-light sticky-top">' . PHP_EOL;
 		echo '					<tr><th class="small col-2">code</th><th>name</th><th class="text-center col-1">P&amp;C</th></tr>' . PHP_EOL;
 		echo '				</thead>' . PHP_EOL;
@@ -405,16 +414,15 @@ function printDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty'
 		}
 		echo '				</tbody>' . PHP_EOL;
 		echo '			</table>' . PHP_EOL;
-		echo '		</div>' . PHP_EOL;
 	}
-	echo '	</section>' . PHP_EOL;
+	echo '		</section>' . PHP_EOL;
 	
 	if ( $accreditationDisplayScript )
 	{
 		require_once('./functions-program.php');
-		echo '	<section id="fdd">' . PHP_EOL;
-		echo '		<h2>Mapped non-engineering degree programs (for <abbr title="Flexible Double Degree">FDD</abbr>s)</h2>' . PHP_EOL;
-		echo '		<div class="alert alert-warning">Note: not all of these programs are allowable FDD combinations with the ANU engineering degrees. See the specific engineering degree rules on P&amp;C for allowable combinations, or consult with CECS Student Services.</div>' . PHP_EOL;
+		echo '		<section id="fdd">' . PHP_EOL;
+		echo '			<h2>Mapped non-engineering degree programs (for <abbr title="Flexible Double Degree">FDD</abbr>s)</h2>' . PHP_EOL;
+		echo '			<div class="alert alert-warning">Note: not all of these programs are allowable FDD combinations with the ANU engineering degrees. See the specific engineering degree rules on P&amp;C for allowable combinations, or consult with CECS Student Services.</div>' . PHP_EOL;
 		$fdds = listAllPrograms();
 		if ( $fdds )
 		{
@@ -428,34 +436,32 @@ function printDefaultLandingPage($programDefinitions, $urlDisplayType = 'pretty'
 				}
 			}
 			asort($fddPrograms);
-			
-			echo '			<div class="container">' . PHP_EOL;
-			echo '				<table class="table table-sm table-hover caption-top">' . PHP_EOL;
-			echo '					<thead class="bg-light sticky-top">' . PHP_EOL;
-			echo '						<tr><th class="small col-2">code</th><th>name</th><th class="text-center col-1">eng. years</th><th class="text-center col-1">P&amp;C</th></tr>' . PHP_EOL;
-			echo '					</thead>' . PHP_EOL;
-			echo '					<tbody>' . PHP_EOL;
+			echo '			<table class="table table-sm table-hover caption-top">' . PHP_EOL;
+			echo '				<thead class="bg-light sticky-top">' . PHP_EOL;
+			echo '					<tr><th class="small col-2">code</th><th>name</th><th class="text-center col-1">eng. years</th><th class="text-center col-1">P&amp;C</th></tr>' . PHP_EOL;
+			echo '				</thead>' . PHP_EOL;
+			echo '				<tbody>' . PHP_EOL;
 			foreach ($fddPrograms as $code => $name)
 			{
 				$fdd = getFDD($code, 'full');
-				echo '						<tr>';
+				echo '					<tr>';
 				echo '<td class="small position-relative"><a class="stretched-link" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array("fdd", $code)) . '">' . $code . '</a></td>';
 				echo '<td class="position-relative"><a class="stretched-link fst-italic" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array("fdd", $code)) . '">' . htmlspecialchars($name, ENT_QUOTES|ENT_HTML5) . '</a></td>';
 				echo '<td class="text-center">' . number_format($fdd->units / 48, 1) . '</td>';
 				echo '<td class="text-center position-relative"><a class="stretched-link" href="' . generateLinkToProgramsAndCourses($code) . '">' . biBoxArrowUpRight() . '</a></td>';
 				echo '</tr>' . PHP_EOL;
 			}
-			echo '					</tbody>' . PHP_EOL;
-			echo '				</table>' . PHP_EOL;
-			echo '			</div>' . PHP_EOL;
+			echo '				</tbody>' . PHP_EOL;
+			echo '			</table>' . PHP_EOL;
 		}
 		else
 		{
-			echo '		<div class="container"><div class="alert alert-warning" role="alert"><h3 class="alert-warning">Notice</h3><p>Could not find any degree mappings.</p></div></div>' . PHP_EOL;
+			echo '			<div class="container"><div class="alert alert-warning" role="alert"><h3 class="alert-warning">Notice</h3><p>Could not find any degree mappings.</p></div></div>' . PHP_EOL;
 		}
-		echo '	</section>' . PHP_EOL;
+		echo '		</section>' . PHP_EOL;
 	}
 	
+	echo '	</main>' . PHP_EOL;
 	echo '	' . htmlPageFooter() . PHP_EOL;
 	echo '</body>' . PHP_EOL;
 }
