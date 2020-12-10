@@ -5,6 +5,8 @@
 	by © 2020 Dr Rado Faletič (rado.faletic@anu.edu.au)
 */
 
+require_once('./functions-html.php');
+
 
 
 
@@ -348,4 +350,395 @@ function getCourse($code, $courseCodes = array(), $detail = 'basic', $type = 'co
 	}
 	
 	return $data;
+}
+
+
+
+
+
+// This function prints HTML for a single course
+function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScript)
+{
+	echo PHP_EOL . '<!-- begin course information -->' . PHP_EOL . PHP_EOL;
+	echo '<main>' . PHP_EOL;
+	echo '	<section>' . PHP_EOL;
+	echo '		<h2>' . $name . '</h2>' . PHP_EOL;
+	echo '		<div class="alert alert-info fst-italic" role="alert">Note: information provided here is indicative only. For full and current course information view the official page on P&amp;C.</div>' . PHP_EOL;
+	echo '		<table class="table">' . PHP_EOL;
+	echo '			<tbody>' . PHP_EOL;
+	echo '				<tr><th>code: </th><td>' . $course->code . '</td></tr>' . PHP_EOL;
+	echo '				<tr><th>name: </th><td class="fst-italic">' . $course->name . '</td></tr>' . PHP_EOL;
+	if ( $accreditationDisplayScript )
+	{
+		echo '				<tr><th><i>JCUMap</i> files: </th><td><ul class="m-0">';
+		if ( file_exists('courses/' . $course->fileName . '.xml') )
+		{
+			echo '<li><a href="' . $urlPrefix . 'courses/' . $course->fileName . '.xml" download>' . $course->fileName . '.xml</a></li>';
+		}
+		if ( file_exists('courses/' . $course->fileName . 'MappingResult.xml') )
+		{
+			echo '<li><a href="' . $urlPrefix . 'courses/' . $course->fileName . 'MappingResult.xml" download>' . $course->fileName . 'MappingResult.xml</a></li>';
+		}
+		echo '</ul></td></tr>' . PHP_EOL;
+	}				
+	if ( isset($course->units) )
+	{
+		echo '				<tr><th>unit value: </th><td>' . number_format($course->units, 0) . '</td></tr>' . PHP_EOL;
+	}
+	if ( isset($course->description) && $course->description )
+	{
+		echo '				<tr><th>description: </th><td class="small">' . str_replace("\n", '<br> ', str_replace("\r\n", '<br> ', trim($course->description))) . '</td></tr>' . PHP_EOL;
+	}
+	echo '				<tr><th>P&amp;C: </th><td class="position-relative"><a class="stretched-link" href="' . generateLinkToProgramsAndCourses($course->code) . '">' . generateLinkToProgramsAndCourses($course->code) . '</a></td></tr>' . PHP_EOL;
+	if ( isset($course->learningOutcomes) && $course->learningOutcomes )
+	{
+		echo '				<tr><th>course learning outcomes: </th><td class="small"><ol>';
+		foreach ($course->learningOutcomes as $learningOutcome)
+		{
+			if ( $learningOutcome )
+			{
+				echo '<li>' . $learningOutcome . '</li>';
+			}
+		}
+		echo '</ol></td></tr>' . PHP_EOL;
+	}
+	if ( isset($course->assessments) && $course->assessments )
+	{
+		echo '				<tr><th>assessment: </th><td class="small">';
+		if ( $accreditationDisplayScript )
+		{
+			$assessmentTypes = listAssessmentTypes();
+			echo '<table class="table table-sm table-bordered table-hover caption-top"><caption class="fst-italic">assessment breakdown</caption>';
+			echo '<colgroup><col span="1"><col span="1"><col span="1"><col span="' . count($course->learningOutcomes) . '"></colgroup>';
+			echo '<thead class="bg-light"><tr><th rowspan="2">assessment item(s)</th><th rowspan="2">category</th><th rowspan="2" class="text-center">weight</th><th colspan="' . count($course->learningOutcomes) . '" class="text-center">percentage breakdown (per 100% item)</th></tr><tr>';
+			foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
+			{
+				echo '<th class="text-center" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="' . ( $learningOutcomeN + 1 ). '. ' . $learningOutcome . '">' . ( $learningOutcomeN + 1 ). '</th>';
+			}
+			echo '</tr></thead><tbody>';
+			foreach ($course->assessments as $assessmentN => $assessment)
+			{							
+				echo '<tr><td><ol class="m-0" start="' . ( $assessmentN + 1 ) . '"><li>' . $assessment->name . '</li></ol></td><td>' . $assessmentTypes[$assessment->typeCode]->type . '</td><td class="text-center fw-bold">';
+				if ( $assessment->weight > 0 )
+				{
+					echo $assessment->weight . '%';
+				}
+				echo '</td>';
+				foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
+				{
+					echo '<td class="text-center">';
+					if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) && $course->assessmentsMapping[$assessmentN][$learningOutcomeN] > 0)
+					{
+						echo $course->assessmentsMapping[$assessmentN][$learningOutcomeN] . '%';
+					}
+					echo '</td>';
+				}
+				echo '</tr>';
+			}
+			echo '</tbody></table>';
+			if ( $course->assessmentCategorisationSummary )
+			{
+				$assessmentTotals = array_sum($course->assessmentCategorisationSummary);
+				echo '<table class="table table-sm table-bordered table-hover caption-top"><caption class="fst-italic">assessment types used across whole subject</caption>';
+				echo '<thead class="bg-light"><tr><th>assessment type</th><th colspan="2" class="text-center">contribution to overall assessment</th></tr></thead><tbody>';
+				foreach ($course->assessmentCategorisationSummary as $assessmentType => $assessmentTypeCredits)
+				{
+					if ( $assessmentTypeCredits > 0.0 )
+					{
+						$assessmentTypePercentage = number_format((100 * $assessmentTypeCredits / $assessmentTotals), 0);
+						if ( $assessmentTypePercentage == 0 )
+						{
+							$assessmentTypePercentage = number_format((100 * $assessmentTypeCredits / $assessmentTotals), 1);
+						}
+						echo '<tr><td class="align-middle">' . $assessmentTypes[$assessmentType]->type . '</td><td class="text-center align-middle">' . $assessmentTypePercentage . '%</td><td class="col-6 align-middle"><div class="progress bg-transparent"><div class="progress-bar" role="progressbar" style="width: ' . $assessmentTypePercentage . '%" aria-valuenow="' . $assessmentTypePercentage . '" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="right" title="' . $assessmentTypePercentage . '%"></div></div></td></tr>';
+					}
+				}
+				echo '</tbody></table>';
+			}
+		}
+		else
+		{
+			echo '<ol>';
+			foreach ($course->assessments as $assessment)
+			{
+				echo '<li>' . $assessment->name;
+				if ( $assessment->weight > 0 )
+				{
+					echo ' (' . $assessment->weight . '%)';
+				}
+				echo '</li>';
+			}
+			echo '</ol>';
+		}
+		echo '</td></tr>' . PHP_EOL;
+	}
+	echo '			</tbody>' . PHP_EOL;
+	echo '		</table>' . PHP_EOL;
+	
+	// table of all learning outcomes mappings (to EA competencies and to assessment items)
+	echo '		<section>' . PHP_EOL;
+	echo '			<h3>Mapped learning outcomes</h3>' . PHP_EOL;
+	echo '			<table class="table table-sm table-bordered table-hover small">' . PHP_EOL;
+	echo '				<colgroup>' . PHP_EOL;
+	echo '					<col span="1">' . PHP_EOL;
+	foreach ($course->competencies as $competencyKey => $competency)
+	{
+		if ( $competency->level == 1 )
+		{
+			echo '					<col span="' . $competency->sublevels . '">' . PHP_EOL;
+		}
+	}
+	if ( $course->assessments )
+	{
+		echo '					<col span="' . count($course->assessments) . '">' . PHP_EOL;
+	}
+	echo '				</colgroup>' . PHP_EOL;
+	echo '				<thead class="bg-light">' . PHP_EOL;
+	echo '					<tr><th rowspan="2" class="text-center align-middle">learning outcome</th>';
+	foreach ($course->competencies as $competencyKey => $competency)
+	{
+		if ( $competency->level == 1 )
+		{
+		echo '<th colspan="' . $competency->sublevels . '" class="text-center">' . $competency->label . ' ' . $competency->text . '</th>';
+		}
+	}
+	if ( $course->assessments )
+	{
+		echo '<th colspan="' . count($course->assessments) . '" class="text-center">assessment tasks</th>';
+	}
+	echo '</tr>' . PHP_EOL;
+	echo '					<tr>';
+	foreach ($course->competencies as $competencyKey => $competency)
+	{
+		if ( $competency->level == 2 )
+		{
+			echo '<th class="text-center align-middle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="' . $competency->text . '">' . $competency->label . '</th>';
+		}
+	}
+	if ( $course->assessments )
+	{
+		foreach ($course->assessments as $assessmentN => $assessment)
+		{
+			echo '<th class="text-center align-middle" data-bs-toggle="tooltip" data-bs-placement="top" title="' . $assessment->name;
+			if ( $accreditationDisplayScript )
+			{
+				echo ' (' . $assessment->weight . '%)';
+			}
+			echo '">' . ( $assessmentN + 1 ) . '</th>';
+		}
+	}
+	echo '</tr>' . PHP_EOL;
+	echo '				</thead>' . PHP_EOL;
+	echo '				<tbody>' . PHP_EOL;
+	foreach ($course->learningOutcomes as $learningOutcomeN => $learningOutcome)
+	{
+		if ( $learningOutcome )
+		{
+			echo '					<tr><td><ol class="m-0" start="' . ( $learningOutcomeN + 1 ) . '"><li>' . $learningOutcome . '</li></ol></td>';
+			foreach ($course->competencies as $competencyKey => $competency)
+			{
+				if ( $competency->level == 2 )
+				{
+					echo '<td class="text-center text-success align-middle">';
+					if ( isset($course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]) && $course->learningOutcomesMapping[$learningOutcomeN][$competencyKey] > 0)
+					{
+						if ( $accreditationDisplayScript )
+						{
+							for ($i=0; $i<$course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]; $i++)
+							{
+								echo '✓';
+							}
+						}
+						else
+						{
+							echo '✓';
+						}
+					}
+					echo '</td>';
+				}
+			}
+			if ( $course->assessments )
+			{
+				foreach ($course->assessments as $assessmentN => $assessment)
+				{
+					echo '<td class="text-center text-success align-middle"';
+					if ( $accreditationDisplayScript )
+					{
+						echo ' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="';
+						if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) )
+						{
+							echo $course->assessmentsMapping[$assessmentN][$learningOutcomeN];
+						}
+						else
+						{
+							echo '0';
+						}
+						echo '% of assessment #' . ( $assessmentN + 1 ) . '"';
+					}
+					echo '>';
+					if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) && $course->assessmentsMapping[$assessmentN][$learningOutcomeN] > 0)
+					{
+						echo '✓';
+					}
+					echo '</td>';
+				}
+			}
+			echo '</tr>' . PHP_EOL;
+		}
+	}
+	echo '				</tbody>' . PHP_EOL;
+	echo '			</table>' . PHP_EOL;
+	echo '		</section>' . PHP_EOL;
+	
+	// display chart of development level learning against each of the competencies
+	echo '		<section>' . PHP_EOL;
+	echo '			<h3>Course contribution towards the ' . $course->competencyName . '</h3>' . PHP_EOL;
+	if ( $accreditationDisplayScript )
+	{
+		echo '			<p>This table maps how the unit credits of this course contribute towards achievement of the ' . $course->competencyName . '.</p>' . PHP_EOL;
+	}
+	else
+	{
+		echo '			<p>This table depicts the relative contribution of this course towards the ' . $course->competencyName . '. <em>Note that this illustration is indicative only, and may not take into account any recent changes to the course. You are advised to review the official course page on P&amp;C for current information.</em>.</p>' . PHP_EOL;
+	}
+	$maxUnits = 1;
+	foreach ($course->mappingData as $competencyLabel => $DLs)
+	{
+		$maxUnits = max($maxUnits, ceil(array_sum($DLs)));
+	}
+	echo '			<table class="table table-sm table-hover small">' . PHP_EOL;
+	$colSpan = 1;
+	if ( $accreditationDisplayScript )
+	{
+		$colSpan = 2;
+		echo '				<thead class="bg-light sticky-top">' . PHP_EOL;
+		echo '					<tr><th class="col-1"></th><th class="text-left border-left">0.0</th><th class="text-right border-right">' . $maxUnits . '.0</th></tr>' . PHP_EOL;
+		echo '				</thead>' . PHP_EOL;
+	}
+	echo '				<tbody>' . PHP_EOL;
+	foreach ($course->competencies as $competencyKey => $competency)
+	{
+		if ( $competency->level == 1 )
+		{
+			echo '					<tr class="table-secondary"><td colspan="' . ( $colSpan + 1 ) . '" class="fw-bold">' . $competency->label . ' ' . $competency->text . '</td></tr>' . PHP_EOL;
+		}
+		else if ( $competency->level == 2 )
+		{
+			echo '					<tr class="border-bottom"><td class="text-center align-middle border-right col-1" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-html="true" title="' . $competency->text . '">' . $competency->label . '</td><td colspan="' . $colSpan . '" class="align-middle">' . PHP_EOL;
+			echo '						<div class="progress bg-transparent">';
+			if ( $accreditationDisplayScript )
+			{
+				if ( isset($course->mappingData[$competency->label][1]) && $course->mappingData[$competency->label][1] > 0.0)
+				{
+					$mappingPercentage = 100 * $course->mappingData[$competency->label][1] / $maxUnits;
+					echo '<div class="progress-bar bg-success text-left" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][1] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][1], 2) . '">DL1</div>';
+				}
+				if ( isset($course->mappingData[$competency->label][2]) && $course->mappingData[$competency->label][2] > 0.0)
+				{
+					$mappingPercentage = 100 * $course->mappingData[$competency->label][2] / $maxUnits;
+					echo '<div class="progress-bar bg-primary text-center" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][2] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][2], 2) . '">DL2</div>';
+				}
+				if ( isset($course->mappingData[$competency->label][3]) && $course->mappingData[$competency->label][3] > 0.0)
+				{
+					$mappingPercentage = 100 * $course->mappingData[$competency->label][3] / $maxUnits;
+					echo '<div class="progress-bar bg-danger text-right" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][3] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][3], 2) . '">DL3</div>';
+				}
+			}
+			else
+			{
+				$sumOfUnits = array_sum($course->mappingData[$competency->label]);
+				if ( $sumOfUnits > 0.0 )
+				{
+					$mappingPercentage = 100 * $sumOfUnits / $maxUnits;
+					echo '<div class="progress-bar" role="progressbar" style="width: ' . $mappingPercentage . '%"></div>';
+				}
+			}
+			echo '</div>' . PHP_EOL;
+			echo '					</td></tr>' . PHP_EOL;
+		}
+	}
+	echo '				</tbody>' . PHP_EOL;
+	echo '			</table>' . PHP_EOL;
+	echo '		</section>' . PHP_EOL;
+	
+	// list all EA competencies, and indicate which are addressed in this course
+	echo '		<section>' . PHP_EOL;
+	echo '			<h3>' . $course->competencyName . ' — summary</h3>' . PHP_EOL;
+	echo '			<table class="table table-sm table-hover">' . PHP_EOL;
+	echo '				<tbody>' . PHP_EOL;
+	$colSpan = 0;
+	if ( $accreditationDisplayScript )
+	{
+		$colSpan = 1;
+	}
+	foreach ($course->competencies as $competencyKey => $competency)
+	{
+		switch ($competency->level)
+		{
+			case 1:
+				echo '					<tr class="table-secondary">';
+				echo '<th colspan="' . ( 4 + $colSpan ) . '">' . $competency->label . ' ' . $competency->text . '</th>';
+				echo '</tr>' . PHP_EOL;
+				break;
+			case 2:
+				echo '					<tr class="small">';
+				if ( $competency->competencyLevel > 0 )
+				{
+					echo '<td class="text-center text-success align-middle">';
+					if ( $accreditationDisplayScript )
+					{
+						for ($i=0; $i<$competency->competencyLevel; $i++)
+						{
+							echo '✓';
+						}
+					}
+					else
+					{
+						echo '✓';
+					}
+					echo '</td>';
+				}
+				else
+				{
+					echo '<td></td>';
+				}
+				echo '<td></td><td>' . $competency->label . '</td><td colspan="' . ( 1 + $colSpan ) . '">' . $competency->text . '</td>';
+				echo '</tr>' . PHP_EOL;
+				break;
+			case 3:
+				if ($accreditationDisplayScript)
+				{
+					echo '					<tr class="small">';
+					if ( $competency->competencyLevel > 0 )
+					{
+						echo '<td class="text-center text-success align-middle small">';
+						if ( $accreditationDisplayScript )
+						{
+							for ($i=0; $i<$competency->competencyLevel; $i++)
+							{
+								echo '✓';
+							}
+						}
+						else
+						{
+							echo '✓';
+						}
+						echo '</td>';
+					}
+					else
+					{
+						echo '<td></td>';
+					}
+					echo '<td colspan="' . ( 1 + $colSpan ) . '"></td><td>' . $competency->label . '</td><td>' . $competency->text . '</td>';
+					echo '</tr>' . PHP_EOL;
+				}
+				break;
+		}
+	}
+	echo '				</tbody>' . PHP_EOL;
+	echo '			</table>' . PHP_EOL;
+	echo '		</section>' . PHP_EOL;
+	echo '	</section>' . PHP_EOL;
+	echo '</main>' . PHP_EOL;
+	echo PHP_EOL . '<!-- end course information -->' . PHP_EOL . PHP_EOL;
 }
