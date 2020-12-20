@@ -158,8 +158,8 @@ function displayFDDPage($name, $fdd, $urlPrefix)
 		$maxUnits = max($maxUnits, ceil(array_sum($DLs)));
 	}
 	echo '			<table class="table table-sm table-hover small">' . PHP_EOL;
-	echo '				<thead class="bg-light sticky-top"><tr><th class="col-1"></th><th class="text-left border-left">0.0</th>';
-	echo '<th class="text-right border-right">' . $maxUnits . '.0</th>';
+	echo '				<thead class="bg-light sticky-top"><tr><th class="col-1"></th><th class="text-start border-start">0.0</th>';
+	echo '<th class="text-end border-end">' . $maxUnits . '.0</th>';
 	echo '</tr></thead>' . PHP_EOL;
 	echo '				<tbody>' . PHP_EOL;
 	foreach ($fdd->competencies as $competencyKey => $competency)
@@ -170,7 +170,7 @@ function displayFDDPage($name, $fdd, $urlPrefix)
 		}
 		else if ( $competency->level == 2 )
 		{
-			echo '					<tr class="border-bottom"><td class="text-center align-middle border-right col-1" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-html="true" title="' . $competency->text . '">' . $competency->label . '</td><td colspan="2" class="align-middle">' . PHP_EOL;
+			echo '					<tr class="border-bottom"><td class="text-center align-middle border-end col-1" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-html="true" title="' . $competency->text . '">' . $competency->label . '</td><td colspan="2" class="align-middle">' . PHP_EOL;
 			echo '						<div class="progress bg-transparent">';
 			$mappingSum = array_sum($fdd->mappingData[$competency->label]);
 			if ( $mappingSum > 0.0)
@@ -204,13 +204,26 @@ function displayFDDPage($name, $fdd, $urlPrefix)
 				echo '					<tr class="small">';
 				if ( $competency->competencyLevel > 0 )
 				{
-					echo '<td class="text-center text-success align-middle">✓</td>';
+					echo '<td class="text-center text-success align-top">✓</td>';
 				}
 				else
 				{
 					echo '<td></td>';
 				}
-				echo '<td></td><td>' . $competency->label . '</td><td>' . $competency->text . '</td>';
+				echo '<td>' . $competency->label . '</td><td colspan="2">' . $competency->text . '</td>';
+				echo '</tr>' . PHP_EOL;
+				break;
+			case 3:
+				echo '					<tr class="small"><td class="small"></td>';
+				if ( $competency->competencyLevel > 0 )
+				{
+					echo '<td class="small text-center text-success align-top">✓</td>';
+				}
+				else
+				{
+					echo '<td class="small"></td>';
+				}
+				echo '<td class="small">' . $competency->label . '</td><td class="small">' . $competency->text . '</td>';
 				echo '</tr>' . PHP_EOL;
 				break;
 		}
