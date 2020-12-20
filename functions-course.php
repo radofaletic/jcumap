@@ -612,7 +612,7 @@ function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScri
 	{
 		$colSpan = 2;
 		echo '				<thead class="bg-light sticky-top">' . PHP_EOL;
-		echo '					<tr><th class="col-1"></th><th class="text-left border-left">0.0</th><th class="text-right border-right">' . $maxUnits . '.0</th></tr>' . PHP_EOL;
+		echo '					<tr><th class="col-1"></th><th class="text-start border-start">0.0</th><th class="text-end border-end">' . $maxUnits . '.0</th></tr>' . PHP_EOL;
 		echo '				</thead>' . PHP_EOL;
 	}
 	echo '				<tbody>' . PHP_EOL;
@@ -624,14 +624,14 @@ function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScri
 		}
 		else if ( $competency->level == 2 )
 		{
-			echo '					<tr class="border-bottom"><td class="text-center align-middle border-right col-1" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-html="true" title="' . $competency->text . '">' . $competency->label . '</td><td colspan="' . $colSpan . '" class="align-middle">' . PHP_EOL;
+			echo '					<tr class="border-bottom"><td class="text-center align-middle border-end col-1" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-html="true" title="' . $competency->text . '">' . $competency->label . '</td><td colspan="' . $colSpan . '" class="align-middle">' . PHP_EOL;
 			echo '						<div class="progress bg-transparent">';
 			if ( $accreditationDisplayScript )
 			{
 				if ( isset($course->mappingData[$competency->label][1]) && $course->mappingData[$competency->label][1] > 0.0)
 				{
 					$mappingPercentage = 100 * $course->mappingData[$competency->label][1] / $maxUnits;
-					echo '<div class="progress-bar bg-success text-left" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][1] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][1], 2) . '">DL1</div>';
+					echo '<div class="progress-bar bg-success text-start" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][1] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][1], 2) . '">DL1</div>';
 				}
 				if ( isset($course->mappingData[$competency->label][2]) && $course->mappingData[$competency->label][2] > 0.0)
 				{
@@ -641,7 +641,7 @@ function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScri
 				if ( isset($course->mappingData[$competency->label][3]) && $course->mappingData[$competency->label][3] > 0.0)
 				{
 					$mappingPercentage = 100 * $course->mappingData[$competency->label][3] / $maxUnits;
-					echo '<div class="progress-bar bg-danger text-right" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][3] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][3], 2) . '">DL3</div>';
+					echo '<div class="progress-bar bg-danger text-end" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][3] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][3], 2) . '">DL3</div>';
 				}
 			}
 			else
@@ -677,59 +677,72 @@ function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScri
 		{
 			case 1:
 				echo '					<tr class="table-secondary">';
-				echo '<th colspan="' . ( 4 + $colSpan ) . '">' . $competency->label . ' ' . $competency->text . '</th>';
+				echo '<th colspan="' . ( 3 + $colSpan ) . '">' . $competency->label . ' ' . $competency->text . '</th>';
 				echo '</tr>' . PHP_EOL;
 				break;
 			case 2:
 				echo '					<tr class="small">';
 				if ( $competency->competencyLevel > 0 )
 				{
-					echo '<td class="text-center text-success align-middle">';
+					echo '<td class="text-center ';
 					if ( $accreditationDisplayScript )
 					{
-						for ($i=0; $i<$competency->competencyLevel; $i++)
+						switch ($competency->competencyLevel)
 						{
-							echo '✓';
+							case 1:
+								echo 'text-success ';
+								break;
+							case 2:
+								echo 'text-primary ';
+								break;
+							case 3:
+								echo 'text-danger ';
+								break;
 						}
 					}
 					else
 					{
-						echo '✓';
+							echo 'text-success ';
 					}
-					echo '</td>';
+					echo 'align-top">✓</td>';
 				}
 				else
 				{
 					echo '<td></td>';
 				}
-				echo '<td></td><td>' . $competency->label . '</td><td colspan="' . ( 1 + $colSpan ) . '">' . $competency->text . '</td>';
+				echo '<td>' . $competency->label . '</td><td colspan="' . ( 1 + $colSpan ) . '">' . $competency->text . '</td>';
 				echo '</tr>' . PHP_EOL;
 				break;
 			case 3:
 				if ($accreditationDisplayScript)
 				{
 					echo '					<tr class="small">';
+					if ( $colSpan)
+					{
+						echo '<td colspan="' . $colSpan . '" class="small"></td>';
+					}
 					if ( $competency->competencyLevel > 0 )
 					{
-						echo '<td class="text-center text-success align-middle small">';
-						if ( $accreditationDisplayScript )
+						echo '<td class="small text-center ';
+						switch ($competency->competencyLevel)
 						{
-							for ($i=0; $i<$competency->competencyLevel; $i++)
-							{
-								echo '✓';
-							}
+							case 1:
+								echo 'text-success ';
+								break;
+							case 2:
+								echo 'text-primary ';
+								break;
+							case 3:
+								echo 'text-danger ';
+								break;
 						}
-						else
-						{
-							echo '✓';
-						}
-						echo '</td>';
+						echo 'align-top small">✓</td>';
 					}
 					else
 					{
-						echo '<td></td>';
+						echo '<td class="small"></td>';
 					}
-					echo '<td colspan="' . ( 1 + $colSpan ) . '"></td><td>' . $competency->label . '</td><td>' . $competency->text . '</td>';
+					echo '<td class="small">' . $competency->label . '</td><td class="small">' . $competency->text . '</td>';
 					echo '</tr>' . PHP_EOL;
 				}
 				break;
