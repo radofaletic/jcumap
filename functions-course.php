@@ -373,7 +373,7 @@ function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScri
 		echo '				<tr><th><i>JCUMap</i> files: </th><td><ul class="m-0">';
 		if ( file_exists('courses/' . $course->fileName . '.xml') )
 		{
-			echo '<li><a href="' . $urlPrefix . 'courses/' . $course->fileName . '.xml" download>' . $course->fileName . '.xml</a></li>';
+			echo '<li><a href="' . $urlPrefix . 'courses/' . $course->fileName . '.xml" download>' . $course->fileName . '.xml</a> ← <small>(download this file to revise the course mapping)</small></li>';
 		}
 		if ( file_exists('courses/' . $course->fileName . 'MappingResult.xml') )
 		{
