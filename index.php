@@ -15,6 +15,13 @@ error_reporting(E_ALL);
 
 
 
+
+$urlPrefix = '/';
+
+
+
+
+
 require_once('./functions-jcumap.php');
 require_once('./functions-html.php');
 require_once('./functions-course.php');
@@ -32,7 +39,6 @@ if ( isset($_GET['accreditationDisplay']) || ( isset($displayInformationForAccre
 	$accreditationDisplayScript = 'accreditation.php';
 }
 $urlDisplayType = 'pretty';//'php'
-$urlPrefix = '/';
 $urlScript = ( $accreditationDisplayScript ) ? $accreditationDisplayScript : 'index.php';
 
 
@@ -171,7 +177,7 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 		echo '	' . resourceNotFound($type, $code) . PHP_EOL;
 	}
 	echo '	' . htmlPageFooter() . PHP_EOL;
-	echo customJS('	', PHP_EOL);
+	echo customJS('	', PHP_EOL, $urlPrefix);
 	echo '</body>' . PHP_EOL;
 }
 else
