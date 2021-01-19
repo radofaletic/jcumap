@@ -48,7 +48,7 @@ function displayFDDPage($name, $fdd, $urlPrefix)
 	echo '				<tr><th><i>JCUMap</i> files: </th><td><ul class="m-0">';
 	if ( file_exists('programs/' . $fdd->fileName . '.xml') )
 	{
-		echo '<li><a href="' . $urlPrefix . 'programs/' . $fdd->fileName . '.xml" download>' . $fdd->fileName . '.xml</a></li>';
+		echo '<li><a href="' . $urlPrefix . 'programs/' . $fdd->fileName . '.xml" download>' . $fdd->fileName . '.xml</a> ← <small>(download this file to revise the degree mapping)</small></li>';
 	}
 	if ( file_exists('programs/' . $fdd->fileName . 'MappingResult.xml') )
 	{
