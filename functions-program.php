@@ -117,7 +117,7 @@ function displayProgramPage($name, $program, $courseCodes, $urlDisplayType, $url
 		echo '				<tr><th><i>JCUMap</i> files: </th><td><ul class="m-0">';
 		if ( file_exists('programs/' . $program->code . '.xml') )
 		{
-			echo '<li><a href="' . $urlPrefix . 'programs/' . $program->code . '.xml" download>' . $program->code . '.xml</a></li>';
+			echo '<li><a href="' . $urlPrefix . 'programs/' . $program->code . '.xml" download>' . $program->code . '.xml</a> ← <small>(download this file to revise the program mapping)</small></li>';
 		}
 		if ( file_exists('programs/' . $program->code . 'MappingResult.xml') )
 		{
