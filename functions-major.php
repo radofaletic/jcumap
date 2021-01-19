@@ -97,7 +97,7 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 		echo '				<tr><th><i>JCUMap</i> files: </th><td><ul class="m-0">';
 		if ( file_exists('majors/' . $major->code . '.xml') )
 		{
-			echo '<li><a href="' . $urlPrefix . 'majors/' . $major->code . '.xml" download>' . $major->code . '.xml</a></li>';
+			echo '<li><a href="' . $urlPrefix . 'majors/' . $major->code . '.xml" download>' . $major->code . '.xml</a> ← <small>(download this file to revise the major mapping)</small></li>';
 		}
 		if ( file_exists('majors/' . $major->code . 'MappingResult.xml') )
 		{
@@ -105,7 +105,7 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 		}
 		if ( $program && isset($program->code) && file_exists('programs/' . $program->code . '.xml') )
 		{
-			echo '<li><a href="' . $urlPrefix . 'programs/' . $program->code . '.xml" download>' . $program->code . '.xml</a></li>';
+			echo '<li><a href="' . $urlPrefix . 'programs/' . $program->code . '.xml" download>' . $program->code . '.xml</a> ← <small>(download this file to revise the program mapping)</small></li>';
 		}
 		if ( $program && isset($program->code) && file_exists('programs/' . $program->code . 'MappingResult.xml') )
 		{
