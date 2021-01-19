@@ -24,11 +24,11 @@ function biBoxArrowUpRight()
 
 
 // This function returns a string which provides custom CSS for this site
-function customCSS($indent = '	', $eol = PHP_EOL)
+function customCSS($indent = '	', $eol = PHP_EOL, $urlPrefix = '/')
 {
 	$indent = ( $indent ) ? '	' : '';
 	$eol = ( $eol ) ? PHP_EOL : '';
-	$customCSS = $indent . '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">' . $eol;
+	$customCSS = $indent . '<link href="' . $urlPrefix . 'styles/bootstrap.min.css" rel="stylesheet">' . $eol;
 	return $customCSS;
 }
 
@@ -37,11 +37,11 @@ function customCSS($indent = '	', $eol = PHP_EOL)
 
 
 // This function returns a string which provides custom JavaScript for this site
-function customJS($indent = '	', $eol = PHP_EOL)
+function customJS($indent = '	', $eol = PHP_EOL, $urlPrefix = '/')
 {
 	$indent = ( $indent ) ? '	' : '';
 	$eol = ( $eol ) ? PHP_EOL : '';
-	$customJS = $indent . '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>' . $eol;
+	$customJS = $indent . '<script src="' . $urlPrefix . 'styles/bootstrap.bundle.min.js"></script>' . $eol;
 	$customJS .= $indent . '<script>var tooltipTriggerList = [].slice.call(document.querySelectorAll(\'[data-bs-toggle="tooltip"]\')); var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); })</script>' . $eol;
 	return $customJS;
 }
@@ -181,7 +181,7 @@ function displayDefaultLandingPage($programDefinitions, $urlDisplayType = 'prett
 	echo '	<meta name="author" content="Rado Faletič">' . PHP_EOL;
 	echo '	<meta name="keywords" content="CECS,EA,Engineers Australia,engineering,mapping">' . PHP_EOL;
 	echo '	<meta name="format-detection" content="telephone=no">' . PHP_EOL;
-	echo customCSS('	', PHP_EOL);
+	echo customCSS('	', PHP_EOL, $urlPrefix);
 	echo '	<title>Professional Skills Mapping :: CECS :: ANU</title>' . PHP_EOL;
 	echo '</head>' . PHP_EOL . PHP_EOL;
 	
