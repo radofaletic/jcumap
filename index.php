@@ -1,27 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]> <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]> <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]> <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
 <?php
 /*
 	index.php
 
-	by © 2020 Dr Rado Faletič (rado.faletic@anu.edu.au)
+	by © 2020–2021 Dr Rado Faletič (rado.faletic@anu.edu.au)
 */
 
-ini_set('display_errors', true);
-ini_set('display_startup_errors', true);
-error_reporting(E_ALL);
 
 
 
 
-
-
-$urlPrefix = '/';
-
-
-
-
-
+require_once('./config.php');
 require_once('./functions-jcumap.php');
 require_once('./functions-html.php');
 require_once('./functions-course.php');
@@ -38,7 +32,6 @@ if ( isset($_GET['accreditationDisplay']) || ( isset($displayInformationForAccre
 {
 	$accreditationDisplayScript = 'accreditation.php';
 }
-$urlDisplayType = 'pretty';//'php'
 $urlScript = ( $accreditationDisplayScript ) ? $accreditationDisplayScript : 'index.php';
 
 
@@ -142,18 +135,8 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 		$code = false;
 	}
 	
-	echo '<head>' . PHP_EOL;
-	echo '	<meta charset="utf-8">' . PHP_EOL;
-	echo '	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">' . PHP_EOL;
-	echo '	<meta name="description" content="CECS Professional Skills Mapping">' . PHP_EOL;
-	echo '	<meta name="author" content="Rado Faletič">' . PHP_EOL;
-	echo '	<meta name="keywords" content="CECS,EA,Engineers Australia,engineering,mapping">' . PHP_EOL;
-	echo '	<meta name="format-detection" content="telephone=no">' . PHP_EOL;
-	echo customCSS('	', PHP_EOL);
-	echo '	<title>' . $shortname . ' :: Professional Skills Mapping :: CECS :: ANU</title>' . PHP_EOL;
-	echo '</head>' . PHP_EOL;
-	echo '<body class="container">' . PHP_EOL;
-	echo '	<header><h1 class="display-1 text-center"><a class="text-reset" href="' . createLink($urlDisplayType, $urlPrefix, $urlScript) . '">CECS Professional Skills Mapping</a></h1></header>' . PHP_EOL;
+	displayHTMLHead($shortname . ' - CECS Professional Skills Mapping', $urlDisplayType, $urlPrefix, $urlScript, true);
+	displayHTMLBodyStart('CECS Professional Skills Mapping', $urlDisplayType, $urlPrefix, $urlScript, $accreditationDisplayScript);
 	if ( $code && $type && $name )
 	{
 		switch ($type)
@@ -176,13 +159,14 @@ if ( isset($_GET['code']) && strlen($_GET['code']) )
 	{
 		echo '	' . resourceNotFound($type, $code) . PHP_EOL;
 	}
-	echo '	' . htmlPageFooter() . PHP_EOL;
-	echo customJS('	', PHP_EOL, $urlPrefix);
-	echo '</body>' . PHP_EOL;
+	displayHTMLBodyEnd($urlDisplayType, $urlPrefix, $urlScript, true);
 }
 else
 {
+	displayHTMLHead('CECS Professional Skills Mapping', $urlDisplayType, $urlPrefix, $urlScript, false);
+	displayHTMLBodyStart('CECS Professional Skills Mapping', $urlDisplayType, $urlPrefix, $urlScript, $accreditationDisplayScript);
 	displayDefaultLandingPage($programDefinitions, $urlDisplayType, $urlPrefix, $urlScript, $accreditationDisplayScript);
+	displayHTMLBodyEnd($urlDisplayType, $urlPrefix, $urlScript, false);
 }
 ?>
 </html>
