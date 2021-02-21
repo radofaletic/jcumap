@@ -2,7 +2,7 @@
 /*
 	functions-major.php
 
-	by © 2020 Dr Rado Faletič (rado.faletic@anu.edu.au)
+	by © 2020–2021 Dr Rado Faletič (rado.faletic@anu.edu.au)
 */
 
 require_once('./functions-jcumap.php');
@@ -73,28 +73,27 @@ function createMajorDetails($code, $codeProgram, &$major, &$program, &$name, &$s
 function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $courseCodes, $urlDisplayType, $urlPrefix, $urlScript, $accreditationDisplayScript)
 {
 	echo PHP_EOL . '<!-- begin major information -->' . PHP_EOL . PHP_EOL;
-	echo '<main>' . PHP_EOL;
-	echo '	<section>' . PHP_EOL;
-	echo '		<h2>' . $name . '</h2>' . PHP_EOL;
-	echo '		<div class="alert alert-info fst-italic" role="alert">Note: information provided here is indicative only. For full and current information about this major view the official page on P&amp;C.';
+	echo '<section class="margintop padtop">' . PHP_EOL;
+	echo '	<h2>' . $name . '</h2>' . PHP_EOL;
+	echo '	<p class="msg-info" role="alert">Note: information provided here is indicative only. For full and current information about this major view the official page on P&amp;C.';
 	if ( !isset($program) || !$program || !isset($program->name) )
 	{
-		echo '<br> This page depicts information about this major in a stand-alone fashion, i.e. not including the core degree it is a part of. To see the combined information of this major as part of a full degree, select one of the “<a class="alert-link" href="#parentPrograms">parent program(s)</a>” below.';
+		echo '<br> This page depicts information about this major in a stand-alone fashion, i.e. not including the core degree it is a part of. To see the combined information of this major as part of a full degree, select one of the “<a href="#parentPrograms">parent program(s)</a>” below.';
 	}
-	echo '</div>' . PHP_EOL;
-	echo '		<table class="table">' . PHP_EOL;
-	echo '			<tbody>' . PHP_EOL;
+	echo '</p>' . PHP_EOL;
+	echo '	<table class="fullwidth tbl-row-bdr anu-long-area">' . PHP_EOL;
+	echo '		<tbody>' . PHP_EOL;
 	if ( $program && isset($program->name) )
 	{
-		echo '				<tr><th>program: </th><td class="fst-italic">' . $shortname . '</td></tr>' . PHP_EOL;
+		echo '			<tr><th>program: </th><td>' . $shortname . '</td></tr>' . PHP_EOL;
 	}
 	else
 	{
-		echo '				<tr><th>major: </th><td class="fst-italic">' . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ' major</td></tr>' . PHP_EOL;
+		echo '			<tr><th>major: </th><td>' . htmlspecialchars($major->name, ENT_QUOTES|ENT_HTML5) . ' major</td></tr>' . PHP_EOL;
 	}
 	if ($accreditationDisplayScript)
 	{
-		echo '				<tr><th><i>JCUMap</i> files: </th><td><ul class="m-0">';
+		echo '			<tr><th><i>JCUMap</i> files: </th><td><ul class="noindent">';
 		if ( file_exists('majors/' . $major->code . '.xml') )
 		{
 			echo '<li><a href="' . $urlPrefix . 'majors/' . $major->code . '.xml" download>' . $major->code . '.xml</a> ← <small>(download this file to revise the major mapping)</small></li>';
@@ -116,7 +115,7 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 	
 	if ( ( $program && isset($program->description) && $program->description ) || ( isset($major->description) && $major->description ) )
 	{
-		echo '				<tr><th>description: </th><td class="small">';
+		echo '			<tr><th>description: </th><td class="small">';
 		if ( $program && isset($program->description) && $program->description )
 		{
 			echo str_replace("\n", '<br> ', str_replace("\r\n", '<br> ', trim($program->description))) . '<br><br> ';
@@ -124,7 +123,7 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 		echo htmlspecialchars(trim($major->description), ENT_QUOTES|ENT_HTML5);
 		echo '</td></tr>' . PHP_EOL;
 	}
-	echo '				<tr><th>P&amp;C: </th><td>';
+	echo '			<tr><th>P&amp;C: </th><td>';
 	if ( $program && isset($program->code) && $program->code )
 	{
 		echo '<a href="' . generateLinkToProgramsAndCourses($program->code) . '">' . generateLinkToProgramsAndCourses($program->code) . '</a><br> ';
@@ -133,31 +132,31 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 	echo '</td></tr>' . PHP_EOL;
 	if ( !( $program && isset($program->name) ) && isset($major->programs) && $major->programs )
 	{
-		echo '				<tr id="parentPrograms"><th>parent program(s): </th><td class="small" style="column-count: 2;"><ul>' . PHP_EOL;
+		echo '			<tr id="parentPrograms"><th>parent program(s): </th><td class="small" style="column-count: 2;"><ul class="noindent">' . PHP_EOL;
 		foreach ($major->programs as $program)
 		{
 			$program = getDefinition($program);
 			if ( $program )
 			{
-				echo '					<li><a href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('program', $program->code), array('major', $major->code)) . '">' . htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . '</a></li>' . PHP_EOL;
+				echo '				<li><a href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('program', $program->code), array('major', $major->code)) . '">' . htmlspecialchars($program->name, ENT_QUOTES|ENT_HTML5) . '</a></li>' . PHP_EOL;
 			}
 		}
-		echo '				</ul></td></tr>' . PHP_EOL;
+		echo '			</ul></td></tr>' . PHP_EOL;
 	}
 	if ( ( isset($program->courses) && $program->courses ) || ( isset($major->courses) && $major->courses ) )
 	{
 		if ( $codeProgram && isset($program->courses) && $program->courses )
 		{
-			echo '				<tr><th>courses in core: </th><td class="small" style="column-count: 2;"><ul>' . PHP_EOL;
+			echo '			<tr><th>courses in core: </th><td class="small" style="column-count: 2;"><ul class="noindent">' . PHP_EOL;
 			foreach ($program->courses as $courseKey => $course)
 			{
 				$course = getCourse($course, $courseCodes, 'full');
 				if ( $course )
 				{
-					echo '					<li>';
+					echo '				<li>';
 					if ( $course->name )
 					{
-						echo '<a href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('course', $course->code)) . '">' . $course->code . ' — <span class="fst-italic">' . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . '</span></a>';
+						echo '<a href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('course', $course->code)) . '">' . $course->code . ' — <span>' . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . '</span></a>';
 					}
 					else
 					{
@@ -165,30 +164,30 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 					}
 					if ( $accreditationDisplayScript && isset($program->coursesForAggregating) && in_array($course->code, $program->coursesForAggregating) )
 					{
-						echo '<sup class="text-danger">*</sup>';
+						echo '<sup class="text-college">*</sup>';
 					}
 					echo '</li>' . PHP_EOL;
 				}
 				unset($program->courses[$courseKey]);
 				$program->courses[$course->code] = $course;
 			}
-			echo '				</ul>';
+			echo '			</ul>';
 			if ( $accreditationDisplayScript )
 			{
-				echo '<span class="small"><sup class="text-danger">*</sup> These courses are used to create the aggregate summaries below.</span>';
+				echo '<span class="small"><sup class="text-college">*</sup> These courses are used to create the aggregate summaries below.</span>';
 			}
 			echo '</td></tr>' . PHP_EOL;
 		}
-		echo '				<tr><th>courses in major: </th><td class="small" style="column-count: 2;"><ul>' . PHP_EOL;
+		echo '			<tr><th>courses in major: </th><td class="small" style="column-count: 2;"><ul class="noindent">' . PHP_EOL;
 		foreach ($major->courses as $courseKey => $course)
 		{
 			$course = getCourse($course, $courseCodes, 'full');
 			if ( $course )
 			{
-				echo '					<li>';
+				echo '				<li>';
 				if ( $course->name )
 				{
-					echo '<a href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('course', $course->code)) . '">' . $course->code . ' — <span class="fst-italic">' . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . '</span></a>';
+					echo '<a href="' . createLink($urlDisplayType, $urlPrefix, $urlScript, array('course', $course->code)) . '">' . $course->code . ' — <span>' . htmlspecialchars($course->name, ENT_QUOTES|ENT_HTML5) . '</span></a>';
 				}
 				else
 				{
@@ -196,14 +195,14 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 				}
 				if ( $accreditationDisplayScript )
 				{
-					echo '<sup class="text-danger">*</sup>';
+					echo '<sup class="text-college">*</sup>';
 				}
 				echo '</li>' . PHP_EOL;
 			}
 			unset($major->courses[$courseKey]);
 			$major->courses[$course->code] = $course;
 		}
-		echo '				</ul></td></tr>' . PHP_EOL;
+		echo '			</ul></td></tr>' . PHP_EOL;
 		if ( isset($program->courses) && $program->courses )
 		{
 			foreach ($program->courses as $courseKey => $course)
@@ -240,8 +239,8 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 			}
 			if ( $assessmentTotals > 0.0 )
 			{
-				echo '				<tr><th>assessment: </th><td class="small">';
-				echo '<table class="table table-sm table-bordered table-hover caption-top"><caption class="fst-italic">assessment types used across whole ';
+				echo '			<tr><th>assessment: </th><td class="small">';
+				echo '<table class="fullwidth tbl-cell-bdr"><caption>assessment types used across whole ';
 				if ( $program && isset($program->name) )
 				{
 					echo 'degree';
@@ -251,7 +250,7 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 					echo 'major';
 				}
 				echo '</caption>';
-				echo '<thead class="bg-light"><tr><th>assessment type</th><th colspan="2" class="text-center">contribution to overall assessment</th></tr></thead><tbody>';
+				echo '<thead><tr><th>assessment type</th><th colspan="2" class="text-center">contribution to overall assessment</th></tr></thead><tbody>';
 				foreach ($assessmentCategorisationSummary as $assessmentType => $assessmentTypeCredits)
 				{
 					if ( $assessmentTypeCredits > 0.0 )
@@ -261,7 +260,7 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 						{
 							$assessmentTypePercentage = number_format((100 * $assessmentTypeCredits / $assessmentTotals), 1);
 						}
-						echo '<tr><td class="align-middle">' . $assessmentTypes[$assessmentType]->type . '</td><td class="text-center align-middle">' . $assessmentTypePercentage . '%</td><td class="col-6 align-middle"><div class="progress bg-transparent"><div class="progress-bar" role="progressbar" style="width: ' . $assessmentTypePercentage . '%" aria-valuenow="' . $assessmentTypePercentage . '" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="right" title="' . $assessmentTypePercentage . '%"></div></div></td></tr>';
+						echo '<tr><td>' . $assessmentTypes[$assessmentType]->type . '</td><td class="text-center">' . $assessmentTypePercentage . '%</td><td class="w-doublenarrow"><div class="fullwidth"><div class="bg-grey50" role="progressbar" style="width: ' . $assessmentTypePercentage . '%" aria-valuenow="' . $assessmentTypePercentage . '" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip" data-bs-placement="right" title="' . $assessmentTypePercentage . '%">&nbsp;</div></div></td></tr>';
 					}
 				}
 				echo '</tbody></table>';
@@ -269,8 +268,8 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 			}
 		}
 	}
-	echo '			</tbody>' . PHP_EOL;
-	echo '		</table>' . PHP_EOL;
+	echo '		</tbody>' . PHP_EOL;
+	echo '	</table>' . PHP_EOL;
 	
 	// display chart of development level learning against each of the competencies
 	$majorCompetencies = array();
@@ -358,8 +357,8 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 	
 	if ( $majorMappingData )
 	{
-		echo '		<section>' . PHP_EOL;
-		echo '			<h3>Cumulative annual progress towards the ' . $majorCompetencyName . '</h3>' . PHP_EOL;
+		echo '	<section class="margintop padtop">' . PHP_EOL;
+		echo '		<h3>Cumulative annual progress towards the ' . $majorCompetencyName . '</h3>' . PHP_EOL;
 		if ( $accreditationDisplayScript )
 		{
 			echo '			<p>This table maps how the unit credits across this ';
@@ -375,7 +374,7 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 		}
 		else
 		{
-			echo '			<p>This table depicts the relative cumulative contribution of this ';
+			echo '		<p>This table depicts the relative cumulative contribution of this ';
 			if ( $program && isset($program->name) )
 			{
 				echo 'degree';
@@ -408,55 +407,49 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 			}
 		}
 		$colSpan = 0;
-		echo '			<table class="table table-sm table-hover small">' . PHP_EOL;
+		echo '		<table class="fullwidth tbl-cell-bdr noborder anu-long-area small">' . PHP_EOL;
 		if ( $accreditationDisplayScript )
 		{
 			$colSpan = 1;
-			echo '				<thead class="bg-light sticky-top"><tr><th class="col-1"></th><th class="text-start border-start">0.0</th><th class="text-end border-end">' . $maxUnits . '.0</th></tr></thead>' . PHP_EOL;
+			echo '			<thead class="anu-sticky-header">' . PHP_EOL;
+			echo '				<tr class="small"><th class="msg-info" colspan="3">Colour legend for learning development levels: <span class="bg-grey25 padleft padright">DL1</span> <span class="bg-uni75 padleft padright" data-bs-toggle="tooltip">DL2</span> <span class="bg-college50 padleft padright">DL3</span></th></tr>' . PHP_EOL;
+			echo '				<tr><th></th><th class="text-left bdr-left-solid"><img style="width: 1em; height: 1em;" src="//style.anu.edu.au/_anu/images/icons/web/first.png" alt="0.0" /> 0.0</th><th class="text-right bdr-right-solid">' . $maxUnits . '.0 <img style="width: 1em; height: 1em;" src="//style.anu.edu.au/_anu/images/icons/web/last.png" alt="' . $maxUnits . '.0" /></th></tr>' . PHP_EOL;
+			echo '			</thead>' . PHP_EOL;
 		}
-		echo '				<tbody>' . PHP_EOL;
+		echo '			<tbody>' . PHP_EOL;
 		foreach ($majorCompetencies as $competencyKey => $competency)
 		{
 			if ( $competency->level == 1 )
 			{
-				echo '					<tr class="table-secondary"><td colspan="' . ( 2 + $colSpan ) . '" class="fw-bold">' . $competency->label . ' ' . $competency->text . '</td></tr>' . PHP_EOL;
+				echo '				<tr><td colspan="' . ( 2 + $colSpan ) . '"><strong>' . $competency->label . ' ' . $competency->text . '</strong></td></tr>' . PHP_EOL;
 			}
 			else if ( $competency->level == 2 )
 			{
-				echo '					<tr class="border-bottom"><td class="text-center align-middle border-end col-1" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-html="true" title="' . $competency->text . '">' . $competency->label . '</td><td colspan="' . ( 1 + $colSpan ) . '" class="align-middle">' . PHP_EOL;
+				echo '				<tr class="border-bottom"><td style="width: 10%;" class="text-center bdr-right-solid" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-html="true" title="' . $competency->text . '">' . $competency->label . '</td><td colspan="' . ( 1 + $colSpan ) . '">' . PHP_EOL;
 				foreach ($majorMappingData[$competency->label] as $year => $DLs)
 				{
-					echo '						<div class="progress bg-transparent">';
+					echo '						<div class="fullwdith" style="margin-bottom: 2px; white-space: nowrap;">';
 					if ( $accreditationDisplayScript )
 					{
 						if ( isset($majorMappingData[$competency->label][$year][1]) && $majorMappingData[$competency->label][$year][1] > 0.0)
 						{
 							$mappingPercentage = 100 * $majorMappingData[$competency->label][$year][1] / $maxUnits;
-							echo '<div class="progress-bar bg-success text-start border" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $majorMappingData[$competency->label][$year][1] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($majorMappingData[$competency->label][$year][1], 2) . '">';
-							if ( $year > 3 )
-							{
-								echo 'DL1';
-							}
+							echo '<div class="bg-grey25 text-left" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $majorMappingData[$competency->label][$year][1] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($majorMappingData[$competency->label][$year][1], 2) . '">';
+							echo ( $year > 3 ) ? 'DL1' : '&nbsp;';
 							echo '</div>';
 						}
 						if ( isset($majorMappingData[$competency->label][$year][2]) && $majorMappingData[$competency->label][$year][2] > 0.0)
 						{
 							$mappingPercentage = 100 * $majorMappingData[$competency->label][$year][2] / $maxUnits;
-							echo '<div class="progress-bar bg-primary text-center border" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $majorMappingData[$competency->label][$year][2] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($majorMappingData[$competency->label][$year][2], 2) . '">';
-							if ( $year > 3 )
-							{
-								echo 'DL2';
-							}
+							echo '<div class="bg-uni75 text-center" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $majorMappingData[$competency->label][$year][2] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($majorMappingData[$competency->label][$year][2], 2) . '">';
+							echo ( $year > 3 ) ? 'DL2' : '&nbsp;';
 							echo '</div>';
 						}
 						if ( isset($majorMappingData[$competency->label][$year][3]) && $majorMappingData[$competency->label][$year][3] > 0.0)
 						{
 							$mappingPercentage = 100 * $majorMappingData[$competency->label][$year][3] / $maxUnits;
-							echo '<div class="progress-bar bg-danger text-end border" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $majorMappingData[$competency->label][$year][3] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($majorMappingData[$competency->label][$year][3], 2) . '">';
-							if ( $year > 3 )
-							{
-								echo 'DL3';
-							}
+							echo '<div class="bg-college50 text-right" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $majorMappingData[$competency->label][$year][3] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($majorMappingData[$competency->label][$year][3], 2) . '">';
+							echo ( $year > 3 ) ? 'DL3' : '&nbsp;';
 							echo '</div>';
 						}
 					}
@@ -466,7 +459,7 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 						if ( $sumOfUnits > 0.0)
 						{
 							$mappingPercentage = 100 * $sumOfUnits / $maxUnits;
-							echo '<div class="progress-bar border" role="progressbar" style="width: ' . $mappingPercentage . '%"></div>';
+							echo '<div class="bg-grey50" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%">&nbsp;</div>';
 						}
 					}
 					echo '&nbsp;yr&nbsp;' . $year . '</div>' . PHP_EOL;
@@ -476,40 +469,51 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 					echo '						<div class="progress bg-transparent">';
 					$sumOfUnits = array_sum($bigProgramMappingData[$competency->label]);
 					$mappingPercentage = 100 * $sumOfUnits / $maxUnits;
-					echo '<div class="progress-bar bg-dark text-center border" role="progressbar" style="width: ' . $mappingPercentage . '%" aria-valuenow="' . $sumOfUnits . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($sumOfUnits, 2) . '">';
+					echo '<div class="bg-grey50 text-center" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $sumOfUnits . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($sumOfUnits, 2) . '">';
 					echo 'program</div>';
 					echo '</div>' . PHP_EOL;
 				}
-				echo '					</td></tr>' . PHP_EOL;
+				echo '				</td></tr>' . PHP_EOL;
 			}
 		}
-		echo '				</tbody>' . PHP_EOL;
-		echo '			</table>' . PHP_EOL;
-		echo '		</section>' . PHP_EOL;
+		echo '			</tbody>' . PHP_EOL;
+		echo '		</table>' . PHP_EOL;
+		echo '	</section>' . PHP_EOL;
 	}
 	
 	// list all EA competencies, and indicate which are addressed in this major
 	if ( $majorCompetencies )
 	{
-		echo '		<section>' . PHP_EOL;
-		echo '			<h3>' . $majorCompetencyName . ' — summary</h3>' . PHP_EOL;
-		if ( $accreditationDisplayScript && isset($bigProgramCompetencies) && $bigProgramCompetencies )
-		{
-			echo '			<div class="alert alert-info fst-italic" role="alert">Note: the black ticks (<span class="text-dark">✓</span>) represent the expectation of attainment of each competency as depicted via the program learning outcomes, and the coloured ticks (<span class="text-success">✓</span>, <span class="text-primary">✓</span>, <span class="text-danger">✓</span>) represent attainment of each competency via aggregating from the courses.</div>' . PHP_EOL;
-		}
-		echo '			<table class="table table-sm table-hover">' . PHP_EOL;
-		echo '				<tbody>' . PHP_EOL;
+		echo '	<section class="margintop padtop">' . PHP_EOL;
+		echo '		<h3>' . $majorCompetencyName . ' — summary</h3>' . PHP_EOL;
+		echo '		<table class="fullwidth tbl-row-bdr noborder anu-long-area">' . PHP_EOL;
 		$colSpan = 0;
 		if ( $accreditationDisplayScript )
 		{
 			$colSpan = 1;
 		}
+		if ( $accreditationDisplayScript )
+		{
+			echo '			<thead class="anu-sticky-header small">' . PHP_EOL;
+			$oneSpan = 3 + $colSpan;
+			if ( isset($bigProgramCompetencies) && $bigProgramCompetencies )
+			{
+				$oneSpan++;
+				echo '				<tr class="small"><th colspan="' . $oneSpan . '" class="msg-info" role="alert">Note: the grey ticks (<span class="text-grey">✓</span>) represent the expectation of attainment of each competency as depicted via the program learning outcomes, and the coloured backgrounds (<span class="bdr-top-solid bdr-bottom-solid bdr-college bg-grey25 padleft padright">DL1</span>, <span class="bdr-top-solid bdr-bottom-solid bdr-college bg-uni75 padleft padright">DL2</span>, <span class="bdr-top-solid bdr-bottom-solid bdr-college bg-college50 padleft padright">DL3</span>) represent attainment of each competency via aggregating from the courses.</th></tr>' . PHP_EOL;
+			}
+			else
+			{
+				echo '				<tr class="small"><th colspan="' . $oneSpan . '" class="msg-info" role="alert">The coloured backgrounds (<span class="bdr-top-solid bdr-bottom-solid bdr-college bg-grey25 padleft padright">DL1</span>, <span class="bdr-top-solid bdr-bottom-solid bdr-college bg-uni75 padleft padright">DL2</span>, <span class="bdr-top-solid bdr-bottom-solid bdr-college bg-college50 padleft padright">DL3</span>) represent attainment of each competency via aggregating from the courses.</th></tr>' . PHP_EOL;
+			}
+			echo '			</thead>' . PHP_EOL;
+		}
+		echo '			<tbody>' . PHP_EOL;
 		foreach ($majorCompetencies as $competencyKey => $competency)
 		{
 			switch ($competency->level)
 			{
 				case 1:
-					echo '					<tr class="table-secondary">';
+					echo '				<tr>';
 					$oneSpan = 3 + $colSpan;
 					if ( $accreditationDisplayScript && $bigProgramCompetencies)
 					{
@@ -519,41 +523,42 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 					echo '</tr>' . PHP_EOL;
 					break;
 				case 2:
-					echo '					<tr class="small">';
+					echo '				<tr';
+					if ( $accreditationDisplayScript && $competency->competencyLevel > 0 )
+					{
+						switch ($competency->competencyLevel)
+						{
+							case 1:
+								echo ' class="small bg-grey25"';
+								break;
+							case 2:
+								echo ' class="small bg-uni75"';
+								break;
+							case 3:
+								echo ' class="small bg-college50"';
+								break;
+						}
+					}
+					else
+					{
+						echo ' class="small"';
+					}
+					echo '>';
+					
 					if ( $accreditationDisplayScript && $bigProgramCompetencies)
 					{
 						if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
 						{
-							echo '<td class="text-center text-dark align-top">✓</td>';
+							echo '<td class="text-center text-grey">✓</td>';
 						}
 						else
 						{
 							echo '<td></td>';
 						}
 					}
-					if ( $competency->competencyLevel > 0 )
+					if ( $competency->competencyLevel > 0 && !$accreditationDisplayScript )
 					{
-						echo '<td class="text-center ';
-						if ( $accreditationDisplayScript )
-						{
-							switch ($competency->competencyLevel)
-							{
-								case 1:
-									echo 'text-success ';
-									break;
-								case 2:
-									echo 'text-primary ';
-									break;
-								case 3:
-									echo 'text-danger ';
-									break;
-							}
-						}
-						else
-						{
-							echo 'text-success ';
-						}
-						echo 'align-top">✓</td>';
+						echo '<td class="text-center">✓</td>';
 					}
 					else
 					{
@@ -565,12 +570,32 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 				case 3:
 					if ( $accreditationDisplayScript )
 					{
-						echo '					<tr class="small">';
+						echo '				<tr';
+						if ( $competency->competencyLevel > 0 )
+						{
+							switch ($competency->competencyLevel)
+							{
+								case 1:
+									echo ' class="small bg-grey25"';
+									break;
+								case 2:
+									echo ' class="small bg-uni75"';
+									break;
+								case 3:
+									echo ' class="small bg-college50"';
+									break;
+							}
+						}
+						else
+						{
+							echo ' class="small';
+						}
+						echo '>';
 						if ( $bigProgramCompetencies)
 						{
 							if ( $bigProgramCompetencies[$competencyKey]->competencyLevel > 0 )
 							{
-								echo '<td class="small text-center text-dark align-top">✓</td>';
+								echo '<td class="small text-center text-grey">✓</td>';
 							}
 							else
 							{
@@ -581,38 +606,17 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 						{
 							echo '<td class="small" colspan="' . $colSpan . '"></td>';
 						}
-						if ( $competency->competencyLevel > 0 )
-						{
-							echo '<td class="small text-center ';
-							switch ($competency->competencyLevel)
-							{
-								case 1:
-									echo 'text-success ';
-									break;
-								case 2:
-									echo 'text-primary ';
-									break;
-								case 3:
-									echo 'text-danger ';
-									break;
-							}
-							echo 'align-top">✓</td>';
-						}
-						else
-						{
-							echo '<td class="small"></td>';
-						}
+						echo '<td class="small"></td>';
 						echo '<td class="small">' . $competency->label . '</td><td class="small">' . $competency->text . '</td>';
 						echo '</tr>' . PHP_EOL;
 					}
 					break;
 			}
 		}
-		echo '				</tbody>' . PHP_EOL;
-		echo '			</table>' . PHP_EOL;
-		echo '		</section>' . PHP_EOL;
+		echo '			</tbody>' . PHP_EOL;
+		echo '		</table>' . PHP_EOL;
+		echo '	</section>' . PHP_EOL;
 	}
-	echo '	</section>' . PHP_EOL;
-	echo '</main>' . PHP_EOL;
+	echo '</section>' . PHP_EOL;
 	echo PHP_EOL . '<!-- end major information -->' . PHP_EOL . PHP_EOL;
 }
