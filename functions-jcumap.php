@@ -2,7 +2,7 @@
 /*
 	functions-jcumap.php
 
-	by © 2020 Dr Rado Faletič (rado.faletic@anu.edu.au)
+	by © 2020–2021 Dr Rado Faletič (rado.faletic@anu.edu.au)
 */
 
 
