@@ -1,24 +1,25 @@
 <IfModule mod_rewrite.c>
  RewriteEngine on
+ RewriteBase /professional_skills_mapping/
 
 # rewrite old URLs to new ones
- RewriteRule ^/?B([A-Z]{4})-CORE.html$ /A$1 [R=301,L]
- RewriteRule ^/?([A-Z]{5})-CORE.html$ /$1 [R=301,L]
- RewriteRule ^/?([A-Z]{4,5})-MAJ.html$ /$1-MAJ [R=301,L]
- RewriteRule ^/?([A-Z]{4}[0-9]{4}).html$ /$1 [R=301,L]
+ RewriteRule ^/?B([A-Z]{4})-CORE.html$ A$1 [R=301,L]
+ RewriteRule ^/?([A-Z]{5})-CORE.html$ $1 [R=301,L]
+ RewriteRule ^/?([A-Z]{4,5})-MAJ.html$ $1-MAJ [R=301,L]
+ RewriteRule ^/?([A-Z]{4}[0-9]{4}).html$ $1 [R=301,L]
 
 # use pretty URLs
- RewriteRule ^/?([A-Z]{5,6})/?$ /?program=$1 [L]
- RewriteRule ^/?([A-Z]{4,5})-MAJ/?$ /?major=$1-MAJ [L]
- RewriteRule ^/?([A-Z]{5})/([A-Z]{4,5})-MAJ/?$ /?program=$1&major=$2-MAJ [L]
- RewriteRule ^/?([A-Z]{4}[0-9]{4})$ /?course=$1 [L]
+ RewriteRule ^/?([A-Z]{5,6})/?$ ?program=$1 [L]
+ RewriteRule ^/?([A-Z]{4,5})-MAJ/?$ ?major=$1-MAJ [L]
+ RewriteRule ^/?([A-Z]{5,6})/([A-Z]{4,5})-MAJ/?$ ?program=$1&major=$2-MAJ [L]
+ RewriteRule ^/?([A-Z]{4}[0-9]{4})$ ?course=$1 [L]
 
 # pretty URLs for accreditation
- RewriteRule ^/?accreditation/?$ /?accreditationDisplay [L]
- RewriteRule ^/?accreditation/([A-Z]{5,6})/?$ /?accreditationDisplay&program=$1 [L]
- RewriteRule ^/?accreditation/([A-Z]{4,5})-MAJ/?$ /?accreditationDisplay&major=$1-MAJ [L]
- RewriteRule ^/?accreditation/([A-Z]{5})/([A-Z]{4,5})-MAJ/?$ /?accreditationDisplay&program=$1&major=$2-MAJ [L]
- RewriteRule ^/?accreditation/([A-Z]{4}[0-9]{4})/?$ /?accreditationDisplay&course=$1 [L]
- RewriteRule ^/?accreditation/FDD-([A-Z]{3,5})/?$ /?accreditationDisplay&fdd=$1 [L]
+ RewriteRule ^/?accreditation/?$ ?accreditationDisplay [L]
+ RewriteRule ^/?accreditation/([A-Z]{5,6})/?$ ?accreditationDisplay&program=$1 [L]
+ RewriteRule ^/?accreditation/([A-Z]{4,5})-MAJ/?$ ?accreditationDisplay&major=$1-MAJ [L]
+ RewriteRule ^/?accreditation/([A-Z]{5})/([A-Z]{4,5})-MAJ/?$ ?accreditationDisplay&program=$1&major=$2-MAJ [L]
+ RewriteRule ^/?accreditation/([A-Z]{4}[0-9]{4})/?$ ?accreditationDisplay&course=$1 [L]
+ RewriteRule ^/?accreditation/FDD-([A-Z]{3,5})/?$ ?accreditationDisplay&fdd=$1 [L]
 
 </IfModule>
