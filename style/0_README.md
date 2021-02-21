@@ -1,6 +1,6 @@
 ## Bootstrap tools
 
-This website utilises CSS and JavaScript from the Bootstrap framework (https://getbootstrap.com/).
+This website utilises CSS and JavaScript from the Bootstrap framework (https://getbootstrap.com).
 
 In particular, it makes use of the Tooltip component (https://getbootstrap.com/docs/5.0/components/tooltips/), which allows for little popovers to display additional information when the mouse is moved over specified HTML elements.
 
