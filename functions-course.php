@@ -646,17 +646,17 @@ function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScri
 				if ( isset($course->mappingData[$competency->label][1]) && $course->mappingData[$competency->label][1] > 0.0)
 				{
 					$mappingPercentage = 100 * $course->mappingData[$competency->label][1] / $maxUnits;
-					echo '<div class="bg-grey25 text-left" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][1] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][1], 2) . '">DL1</div>';
+					echo '<div class="bg-grey25 text-left" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][1] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][1], 2) . '">&nbsp;</div>';
 				}
 				if ( isset($course->mappingData[$competency->label][2]) && $course->mappingData[$competency->label][2] > 0.0)
 				{
 					$mappingPercentage = 100 * $course->mappingData[$competency->label][2] / $maxUnits;
-					echo '<div class="bg-uni75 text-center" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][2] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][2], 2) . '">DL2</div>';
+					echo '<div class="bg-uni75 text-center" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][2] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][2], 2) . '">&nbsp;</div>';
 				}
 				if ( isset($course->mappingData[$competency->label][3]) && $course->mappingData[$competency->label][3] > 0.0)
 				{
 					$mappingPercentage = 100 * $course->mappingData[$competency->label][3] / $maxUnits;
-					echo '<div class="bg-college50 text-right" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][3] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][3], 2) . '">DL3</div>';
+					echo '<div class="bg-college50 text-right" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $course->mappingData[$competency->label][3] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($course->mappingData[$competency->label][3], 2) . '">&nbsp;</div>';
 				}
 			}
 			else
@@ -665,7 +665,7 @@ function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScri
 				if ( $sumOfUnits > 0.0 )
 				{
 					$mappingPercentage = 100 * $sumOfUnits / $maxUnits;
-					echo '<div class="bg-grey50" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%">&nbsp;</div>';
+					echo '<div class="bg-college50" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%">&nbsp;</div>';
 				}
 			}
 			echo '</div>' . PHP_EOL;
