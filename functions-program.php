@@ -424,23 +424,17 @@ function displayProgramPage($name, $program, $courseCodes, $urlDisplayType, $url
 						if ( isset($programMappingData[$competency->label][$year][1]) && $programMappingData[$competency->label][$year][1] > 0.0)
 						{
 							$mappingPercentage = 100 * $programMappingData[$competency->label][$year][1] / $maxUnits;
-							echo '<div class="bg-grey25 text-left" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $programMappingData[$competency->label][$year][1] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($programMappingData[$competency->label][$year][1], 2) . '">';
-							echo ( $masters || $year > 3 ) ? 'DL1' : '&nbsp;';
-							echo '</div>';
+							echo '<div class="bg-grey25 text-left" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $programMappingData[$competency->label][$year][1] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($programMappingData[$competency->label][$year][1], 2) . '">&nbsp;</div>';
 						}
 						if ( isset($programMappingData[$competency->label][$year][2]) && $programMappingData[$competency->label][$year][2] > 0.0)
 						{
 							$mappingPercentage = 100 * $programMappingData[$competency->label][$year][2] / $maxUnits;
-							echo '<div class="bg-uni75 text-center" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $programMappingData[$competency->label][$year][2] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($programMappingData[$competency->label][$year][2], 2) . '">';
-							echo ( $masters || $year > 3 ) ? 'DL2' : '&nbsp;';
-							echo '</div>';
+							echo '<div class="bg-uni75 text-center" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $programMappingData[$competency->label][$year][2] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($programMappingData[$competency->label][$year][2], 2) . '">&nbsp;</div>';
 						}
 						if ( isset($programMappingData[$competency->label][$year][3]) && $programMappingData[$competency->label][$year][3] > 0.0)
 						{
 							$mappingPercentage = 100 * $programMappingData[$competency->label][$year][3] / $maxUnits;
-							echo '<div class="bg-college50 text-right" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $programMappingData[$competency->label][$year][3] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($programMappingData[$competency->label][$year][3], 2) . '">';
-							echo ( $masters || $year > 3 ) ? 'DL3' : '&nbsp;';
-							echo '</div>';
+							echo '<div class="bg-college50 text-right" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%" aria-valuenow="' . $programMappingData[$competency->label][$year][3] . '" aria-valuemin="0" aria-valuemax="' . $maxUnits . '" data-bs-toggle="tooltip" data-bs-placement="right" title="' . number_format($programMappingData[$competency->label][$year][3], 2) . '">&nbsp;</div>';
 						}
 					}
 					else
@@ -449,7 +443,7 @@ function displayProgramPage($name, $program, $courseCodes, $urlDisplayType, $url
 						if ( $sumOfUnits > 0.0)
 						{
 							$mappingPercentage = 100 * $sumOfUnits / $maxUnits;
-							echo '<div class="bg-grey50" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%">&nbsp;</div>';
+							echo '<div class="bg-college50" role="progressbar" style="display: inline; display: inline-block; width: ' . $mappingPercentage . '%">&nbsp;</div>';
 						}
 					}
 					if ( !$masters )
