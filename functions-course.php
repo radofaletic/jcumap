@@ -545,7 +545,7 @@ function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScri
 			{
 				if ( $competency->level == 2 )
 				{
-					echo '<td';
+					echo '';
 					if ( isset($course->learningOutcomesMapping[$learningOutcomeN][$competencyKey]) && $course->learningOutcomesMapping[$learningOutcomeN][$competencyKey] > 0)
 					{
 						if ( $accreditationDisplayScript )
@@ -553,48 +553,57 @@ function displayCoursePage($name, $course, $urlPrefix, $accreditationDisplayScri
 							switch ($course->learningOutcomesMapping[$learningOutcomeN][$competencyKey])
 							{
 								case 1:
-									echo ' class="text-center bg-grey25" title="DL1"';
+									echo '<td class="text-center bg-grey25" title="DL1">&nbsp;</td>';
 									break;
 								case 2:
-									echo ' class="text-center bg-uni75" title="DL2"';
+									echo '<td class="text-center bg-uni75" title="DL2">&nbsp;</td>';
 									break;
 								case 3: default:
-									echo ' class="text-center bg-college50" title="DL3"';
+									echo '<td class="text-center bg-college50" title="DL3">&nbsp;</td>';
 									break;
 							}
 						}
 						else
 						{
-							echo ' class="text-center bg-college25"';
+							echo '<td class="text-center bg-college25">✓</td>';
 						}
 					}
-					echo '>&nbsp;</td>';
+					else
+					{
+						echo '<td></td>';
+					}
 				}
 			}
 			if ( $course->assessments )
 			{
 				foreach ($course->assessments as $assessmentN => $assessment)
 				{
-					echo '<td class="text-center';
 					if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) && $course->assessmentsMapping[$assessmentN][$learningOutcomeN] > 0)
 					{
-						echo ' bg-grey50';
-					}
-					echo '"';
-					if ( $accreditationDisplayScript )
-					{
-						echo ' title="';
-						if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) )
+						if ( $accreditationDisplayScript )
 						{
-							echo $course->assessmentsMapping[$assessmentN][$learningOutcomeN];
+							echo '<td class="text-center bg-grey50"';
+							echo ' title="';
+							if ( isset($course->assessmentsMapping[$assessmentN][$learningOutcomeN]) )
+							{
+								echo $course->assessmentsMapping[$assessmentN][$learningOutcomeN];
+							}
+							else
+							{
+								echo '0';
+							}
+							echo '% of assessment #' . ( $assessmentN + 1 ) . '"';
+							echo '>&nbsp;</td>';
 						}
 						else
 						{
-							echo '0';
+							echo '<td class="text-center bg-grey50">✓</td>';	
 						}
-						echo '% of assessment #' . ( $assessmentN + 1 ) . '"';
 					}
-					echo '>&nbsp;</td>';
+					else
+					{
+						echo '<td></td>';
+					}
 				}
 			}
 			echo '</tr>' . PHP_EOL;
