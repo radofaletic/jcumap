@@ -582,7 +582,7 @@ function displayMajorPage($name, $shortname, $major, $program, $codeProgram, $co
 						}
 						else
 						{
-							echo ' class="small';
+							echo ' class="small"';
 						}
 						echo '>';
 						if ( $bigProgramCompetencies)
