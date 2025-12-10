@@ -2,7 +2,7 @@
 
 This folder contains XML files, from the *[JCUMap Software Suite](https://doi.org/10.1080/03043797.2017.1324404)*, that describe mappings for degree programs.
 
-For each degree program, there are two files, prefixed by the program code as depicted on the P&C website.
+For each degree program, there are two files, prefixed by the program code as depicted on the [P&C website](https://programsandcourses.anu.edu.au/).
 
 1. The first file contains the *JCUMap* mapping data, as inputed to the software (e.g. `BARTS.xml` for *Bachelor of Arts*)
 2. The second file contains the *JCUMap* mapping result, as is produced by the software (e.g. `BARTSMappingResult.xml`)
