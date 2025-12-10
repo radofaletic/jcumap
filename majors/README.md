@@ -4,7 +4,7 @@
 
 ---
 
-This folder contains XML files, from the *JCUMap Software Suite*, that describe mappings for degree majors.
+This folder contains XML files, from the *[JCUMap Software Suite](https://doi.org/10.1080/03043797.2017.1324404)*, that describe mappings for degree majors.
 
 For each major, there are two files, prefixed by the major code as depicted on the P&C website.
 
