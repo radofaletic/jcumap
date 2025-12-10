@@ -1,10 +1,10 @@
 ## CECS Professional Skills Mapping website
 
-This website is written in plain [PHP](https://www.php.net), and produce easily readable web pages from the output XML files from the *JCUMap Software Suite*.
+This website is written in plain [PHP](https://www.php.net/), and produce easily readable web pages from the output XML files from the *[JCUMap Software Suite](https://doi.org/10.1080/03043797.2017.1324404)*.
 
 In addition to the public-facing site (accessed from the root URL `/`), there is also a hidden site that is meant to be accessed only by staff and/or external accreditors. This site contains additional information (produced from the same mapping files), and can be accessed via the URL `/accreditation`.
 
-You will find additional `0_README.md` files in each of the sub-directories, which providing specific detail and instructions regarding the XML files in those directories. *This* file provides general instructions for managing this website.
+You will find additional `README.md` files in each of the sub-directories, which providing specific detail and instructions regarding the XML files in those directories. *This* file provides general instructions for managing this website.
 
 In general, this website should not require any maintenance. The main `index.php` script, along with auxiliary functions defined in `functions-*.php`, does all of the work in reading the XML files and serving appropriate HTML content to your web server. Additionally, the `.htaccess` file defines URL rewriting and redirection rules to enable the use of pretty URLs, rather than relying on URL query strings. The `RewriteBase` directive in this file should be edited to point to the URL prefix being used on y our web server.
 
