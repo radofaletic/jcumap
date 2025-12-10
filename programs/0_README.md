@@ -1,6 +1,6 @@
 ## *JCUMap* XML files for degree programs
 
-This folder contains XML files, from the *JCUMap Software Suite*, that describe mappings for degree programs.
+This folder contains XML files, from the *[JCUMap Software Suite](https://doi.org/10.1080/03043797.2017.1324404)*, that describe mappings for degree programs.
 
 For each degree program, there are two files, prefixed by the program code as depicted on the P&C website.
 
